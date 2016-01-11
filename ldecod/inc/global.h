@@ -541,7 +541,7 @@ typedef struct slice
   int max_mb_vmv_r;                          //!< maximum vertical motion vector range in luma quarter pixel units for the current level_idc
   int ref_flag[17];                //!< 0: i-th previous frame is incorrect
 
-  int erc_mvperMB;
+  //int erc_mvperMB;
   Macroblock *mb_data;
   struct storable_picture *dec_picture;
   int **siblock;
@@ -766,7 +766,7 @@ typedef struct video_par
   int last_ref_pic_poc;
   int ref_poc_gap;
   int poc_gap;
-  int conceal_mode;
+  //int conceal_mode;
   int earlier_missing_poc;
   unsigned int frame_to_conceal;
   int IDR_concealment_flag;
@@ -828,7 +828,7 @@ typedef struct video_par
   struct object_buffer  *erc_object_list;
   struct ercVariables_s *erc_errorVar;
 
-  int erc_mvperMB;
+  //int erc_mvperMB;
   struct video_par *erc_img;
   int ec_flag[SE_MAX_ELEMENTS];        //!< array to set errorconcealment
 
@@ -976,7 +976,7 @@ typedef struct inp_par
 #endif
 
   // picture error concealment
-  int conceal_mode;
+  //int conceal_mode;
   int ref_poc_gap;
   int poc_gap;
 

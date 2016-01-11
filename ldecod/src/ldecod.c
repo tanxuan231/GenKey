@@ -1131,7 +1131,7 @@ int OpenDecoder(InputParameters *p_Inp)
   pDecoder = p_Dec;
   //Configure (pDecoder->p_Vid, pDecoder->p_Inp, argc, argv);
   memcpy(pDecoder->p_Inp, p_Inp, sizeof(InputParameters));
-  pDecoder->p_Vid->conceal_mode = p_Inp->conceal_mode;
+  //pDecoder->p_Vid->conceal_mode = p_Inp->conceal_mode;
   pDecoder->p_Vid->ref_poc_gap = p_Inp->ref_poc_gap;
   pDecoder->p_Vid->poc_gap = p_Inp->poc_gap;
 #if TRACE

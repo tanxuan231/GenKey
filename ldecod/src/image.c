@@ -194,47 +194,6 @@ static void init_picture(VideoParameters *p_Vid, Slice *currSlice, InputParamete
   if (currSlice->idr_flag)
     p_Vid->recovery_frame_num = currSlice->frame_num;
 
-  if (p_Vid->recovery_point == 0 &&
-    currSlice->frame_num != p_Vid->pre_frame_num &&
-    currSlice->frame_num != (p_Vid->pre_frame_num + 1) % p_Vid->max_frame_num)
-  {
-    if (active_sps->gaps_in_frame_num_value_allowed_flag == 0)
-    {
-      // picture error concealment
-      if(p_Inp->conceal_mode !=0)
-      {
-        if((currSlice->frame_num) < ((p_Vid->pre_frame_num + 1) % p_Vid->max_frame_num))
-        {
-          /* Conceal lost IDR frames and any frames immediately
-             following the IDR. Use frame copy for these since
-             lists cannot be formed correctly for motion copy*/
-          p_Vid->conceal_mode = 1;
-          p_Vid->IDR_concealment_flag = 1;
-          //conceal_lost_frames(p_Dpb, currSlice);
-          //reset to original concealment mode for future drops
-          p_Vid->conceal_mode = p_Inp->conceal_mode;
-        }
-        else
-        {
-          //reset to original concealment mode for future drops
-          p_Vid->conceal_mode = p_Inp->conceal_mode;
-
-          p_Vid->IDR_concealment_flag = 0;
-          //conceal_lost_frames(p_Dpb, currSlice);
-        }
-      }
-      else
-      {   /* Advanced Error Concealment would be called here to combat unintentional loss of pictures. */
-        error("An unintentional loss of pictures occurs! Exit\n", 100);
-      }
-    }
-#if 0	
-	//Òþ²ØÑÚ¸Ç
-    if(p_Vid->conceal_mode == 0)
-      fill_frame_num_gap(p_Vid, currSlice);
-#endif	
-  }
-
   if(currSlice->nal_reference_idc)
   {
     p_Vid->pre_frame_num = currSlice->frame_num;
@@ -243,7 +202,7 @@ static void init_picture(VideoParameters *p_Vid, Slice *currSlice, InputParamete
   //p_Vid->num_dec_mb = 0;
 
   //calculate POC
-  decode_poc(p_Vid, currSlice);
+  //decode_poc(p_Vid, currSlice);
 
   if (p_Vid->recovery_frame_num == (int) currSlice->frame_num && p_Vid->recovery_poc == 0x7fffffff)
     p_Vid->recovery_poc = currSlice->framepoc;
@@ -285,7 +244,7 @@ static void init_picture(VideoParameters *p_Vid, Slice *currSlice, InputParamete
 #if (DISABLE_ERC == 0)
   //ercReset(p_Vid->erc_errorVar, p_Vid->PicSizeInMbs, p_Vid->PicSizeInMbs, dec_picture->size_x);
 #endif
-  p_Vid->erc_mvperMB = 0;
+  //p_Vid->erc_mvperMB = 0;
 
   switch (currSlice->structure )
   {
@@ -1688,107 +1647,6 @@ void exit_picture(VideoParameters *p_Vid, StorablePicture **dec_picture)
 
   //p_Vid->currentSlice->current_mb_nr = -4712;   // impossible value for debugging, StW
   //p_Vid->currentSlice->current_slice_nr = 0;
-}
-
-/*!
- ************************************************************************
- * \brief
- *    write the encoding mode and motion vectors of current
- *    MB to the buffer of the error concealment module.
- ************************************************************************
- */
-void ercWriteMBMODEandMV(Macroblock *currMB)
-{
-  VideoParameters *p_Vid = currMB->p_Vid;
-  int i, ii, jj, currMBNum = currMB->mbAddrX; //p_Vid->currentSlice->current_mb_nr;
-  StorablePicture *dec_picture = p_Vid->dec_picture;
-  int mbx = xPosMB(currMBNum, dec_picture->size_x), mby = yPosMB(currMBNum, dec_picture->size_x);
-  objectBuffer_t *currRegion, *pRegion;
-
-  currRegion = p_Vid->erc_object_list + (currMBNum<<2);
-
-  if(p_Vid->type != B_SLICE) //non-B frame
-  {
-    for (i=0; i<4; ++i)
-    {
-      pRegion             = currRegion + i;
-      pRegion->regionMode = (currMB->mb_type  ==I16MB  ? REGMODE_INTRA      :
-        currMB->b8mode[i]==IBLOCK ? REGMODE_INTRA_8x8  :
-        currMB->b8mode[i]==0      ? REGMODE_INTER_COPY :
-        currMB->b8mode[i]==1      ? REGMODE_INTER_PRED : REGMODE_INTER_PRED_8x8);
-      if (currMB->b8mode[i]==0 || currMB->b8mode[i]==IBLOCK)  // INTRA OR COPY
-      {
-        pRegion->mv[0]    = 0;
-        pRegion->mv[1]    = 0;
-        pRegion->mv[2]    = 0;
-      }
-      else
-      {
-        ii              = 4*mbx + (i & 0x01)*2;// + BLOCK_SIZE;
-        jj              = 4*mby + (i >> 1  )*2;
-        if (currMB->b8mode[i]>=5 && currMB->b8mode[i]<=7)  // SMALL BLOCKS
-        {
-          pRegion->mv[0]  = (dec_picture->mv_info[jj][ii].mv[LIST_0].mv_x + dec_picture->mv_info[jj][ii + 1].mv[LIST_0].mv_x + dec_picture->mv_info[jj + 1][ii].mv[LIST_0].mv_x + dec_picture->mv_info[jj + 1][ii + 1].mv[LIST_0].mv_x + 2)/4;
-          pRegion->mv[1]  = (dec_picture->mv_info[jj][ii].mv[LIST_0].mv_y + dec_picture->mv_info[jj][ii + 1].mv[LIST_0].mv_y + dec_picture->mv_info[jj + 1][ii].mv[LIST_0].mv_y + dec_picture->mv_info[jj + 1][ii + 1].mv[LIST_0].mv_y + 2)/4;
-        }
-        else // 16x16, 16x8, 8x16, 8x8
-        {
-          pRegion->mv[0]  = dec_picture->mv_info[jj][ii].mv[LIST_0].mv_x;
-          pRegion->mv[1]  = dec_picture->mv_info[jj][ii].mv[LIST_0].mv_y;
-          //          pRegion->mv[0]  = dec_picture->motion.mv[LIST_0][4*mby+(i/2)*2][4*mbx+(i%2)*2+BLOCK_SIZE][0];
-          //          pRegion->mv[1]  = dec_picture->motion.mv[LIST_0][4*mby+(i/2)*2][4*mbx+(i%2)*2+BLOCK_SIZE][1];
-        }
-        currMB->p_Slice->erc_mvperMB      += iabs(pRegion->mv[0]) + iabs(pRegion->mv[1]);
-        pRegion->mv[2]    = dec_picture->mv_info[jj][ii].ref_idx[LIST_0];
-      }
-    }
-  }
-  else  //B-frame
-  {
-    for (i=0; i<4; ++i)
-    {
-      ii                  = 4*mbx + (i%2)*2;// + BLOCK_SIZE;
-      jj                  = 4*mby + (i/2)*2;
-      pRegion             = currRegion + i;
-      pRegion->regionMode = (currMB->mb_type  ==I16MB  ? REGMODE_INTRA      :
-        currMB->b8mode[i]==IBLOCK ? REGMODE_INTRA_8x8  : REGMODE_INTER_PRED_8x8);
-      if (currMB->mb_type==I16MB || currMB->b8mode[i]==IBLOCK)  // INTRA
-      {
-        pRegion->mv[0]    = 0;
-        pRegion->mv[1]    = 0;
-        pRegion->mv[2]    = 0;
-      }
-      else
-      {
-        int idx = (dec_picture->mv_info[jj][ii].ref_idx[0] < 0) ? 1 : 0;
-        //        int idx = (currMB->b8mode[i]==0 && currMB->b8pdir[i]==2 ? LIST_0 : currMB->b8pdir[i]==1 ? LIST_1 : LIST_0);
-        //        int idx = currMB->b8pdir[i]==0 ? LIST_0 : LIST_1;
-        pRegion->mv[0]    = (dec_picture->mv_info[jj][ii].mv[idx].mv_x + 
-          dec_picture->mv_info[jj][ii+1].mv[idx].mv_x + 
-          dec_picture->mv_info[jj+1][ii].mv[idx].mv_x + 
-          dec_picture->mv_info[jj+1][ii+1].mv[idx].mv_x + 2)/4;
-        pRegion->mv[1]    = (dec_picture->mv_info[jj][ii].mv[idx].mv_y + 
-          dec_picture->mv_info[jj][ii+1].mv[idx].mv_y + 
-          dec_picture->mv_info[jj+1][ii].mv[idx].mv_y + 
-          dec_picture->mv_info[jj+1][ii+1].mv[idx].mv_y + 2)/4;
-        currMB->p_Slice->erc_mvperMB      += iabs(pRegion->mv[0]) + iabs(pRegion->mv[1]);
-
-        pRegion->mv[2]  = (dec_picture->mv_info[jj][ii].ref_idx[idx]);
-        /*
-        if (currMB->b8pdir[i]==0 || (currMB->b8pdir[i]==2 && currMB->b8mode[i]!=0)) // forward or bidirect
-        {
-        pRegion->mv[2]  = (dec_picture->motion.ref_idx[LIST_0][jj][ii]);
-        ///???? is it right, not only "p_Vid->fw_refFrArr[jj][ii-4]"
-        }
-        else
-        {
-        pRegion->mv[2]  = (dec_picture->motion.ref_idx[LIST_1][jj][ii]);
-        //          pRegion->mv[2]  = 0;
-        }
-        */
-      }
-    }
-  }
 }
 
 /*!
