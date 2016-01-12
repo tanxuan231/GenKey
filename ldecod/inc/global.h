@@ -728,8 +728,8 @@ typedef struct video_par
   // picture error concealment
   // concealment_head points to first node in list, concealment_end points to
   // last node in list. Initialize both to NULL, meaning no nodes in list yet
-  struct concealment_node *concealment_head;
-  struct concealment_node *concealment_end;
+  //struct concealment_node *concealment_head;
+  //struct concealment_node *concealment_end;
 
   unsigned int pre_frame_num;           //!< store the frame_num in the last decoded slice. For detecting gap in frame_num.
   int non_conforming_stream;

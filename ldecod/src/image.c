@@ -47,7 +47,6 @@
 #include "vlc.h"
 #include "quant.h"
 
-#include "erc_api.h"
 #include "fast_memory.h"
 
 extern int testEndian(void);

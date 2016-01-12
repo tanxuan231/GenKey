@@ -52,7 +52,6 @@
 #include "cabac.h"
 #include "parset.h"
 #include "sei.h"
-#include "erc_api.h"
 #include "quant.h"
 #include "nalu.h"
 #include "img_io.h"

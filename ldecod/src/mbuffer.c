@@ -22,7 +22,6 @@
 #include <limits.h>
 
 #include "global.h"
-#include "erc_api.h"
 #include "image.h"
 #include "mbuffer.h"
 #include "memalloc.h"
