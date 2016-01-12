@@ -168,43 +168,10 @@ typedef struct frame_store
   int       layer_id;
 } FrameStore;
 
-
-//! Decoded Picture Buffer
-typedef struct decoded_picture_buffer
-{
-  VideoParameters *p_Vid;
-  InputParameters *p_Inp;
-  FrameStore  **fs;
-  FrameStore  **fs_ref;
-  FrameStore  **fs_ltref;
-  FrameStore  **fs_ilref; // inter-layer reference (for multi-layered codecs)
-  unsigned      size;
-  unsigned      used_size;
-  unsigned      ref_frames_in_buffer;
-  unsigned      ltref_frames_in_buffer;
-  int           last_output_poc;
-#if (MVC_EXTENSION_ENABLE)
-  int           last_output_view_id;
-#endif
-  int           max_long_term_pic_idx;  
-
-
-  //int           init_done;
-  int           num_ref_frames;
-
-  FrameStore   *last_picture;
-  unsigned     used_size_il;
-  int          layer_id;
-
-  //DPB related function;
-
-} DecodedPictureBuffer;
-
 extern FrameStore*       alloc_frame_store(void);
 extern void              free_frame_store (FrameStore* f);
 extern StorablePicture*  alloc_storable_picture(VideoParameters *p_Vid, PictureStructure type, int size_x, int size_y, int size_x_cr, int size_y_cr, int is_output);
 extern void              free_storable_picture (StorablePicture* p);
-extern StorablePicture*  get_short_term_pic (Slice *currSlice, DecodedPictureBuffer *p_Dpb, int picNum);
 
 #endif
 

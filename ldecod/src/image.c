@@ -172,7 +172,7 @@ static void init_picture(VideoParameters *p_Vid, Slice *currSlice, InputParamete
   int nplane;
   StorablePicture *dec_picture = NULL;
   seq_parameter_set_rbsp_t *active_sps = p_Vid->active_sps;
-  DecodedPictureBuffer *p_Dpb = currSlice->p_Dpb;
+  //DecodedPictureBuffer *p_Dpb = currSlice->p_Dpb;
 
   p_Vid->PicHeightInMbs = p_Vid->FrameHeightInMbs / ( 1 + currSlice->field_pic_flag );
   p_Vid->PicSizeInMbs   = p_Vid->PicWidthInMbs * p_Vid->PicHeightInMbs;
