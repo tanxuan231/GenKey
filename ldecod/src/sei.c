@@ -22,7 +22,6 @@
 
 // #define PRINT_BUFFERING_PERIOD_INFO    // uncomment to print buffering period SEI info
 // #define PRINT_PICTURE_TIMING_INFO      // uncomment to print picture timing SEI info
-// #define WRITE_MAP_IMAGE                // uncomment to write spare picture map
 // #define PRINT_SUBSEQUENCE_INFO         // uncomment to print sub-sequence SEI info
 // #define PRINT_SUBSEQUENCE_LAYER_CHAR   // uncomment to print sub-sequence layer characteristics SEI info
 // #define PRINT_SUBSEQUENCE_CHAR         // uncomment to print sub-sequence characteristics SEI info
@@ -202,18 +201,6 @@ void interpret_spare_pic( byte* payload, int size, VideoParameters *p_Vid )
   int m, n, left, right, top, bottom,directx, directy;
   byte ***map;
 
-#ifdef WRITE_MAP_IMAGE
-  int symbol_size_in_bytes = p_Vid->pic_unit_bitsize_on_disk/8;
-  int  j, k, i0, j0, tmp, kk;
-  char filename[20] = "map_dec.yuv";
-  FILE *fp;
-  imgpel** Y;
-  static int old_pn=-1;
-  static int first = 1;
-
-  printf("Spare picture SEI message\n");
-#endif
-
   p_Dec->UsedBits = 0;
 
   assert( payload!=NULL);
@@ -226,15 +213,7 @@ void interpret_spare_pic( byte* payload, int size, VideoParameters *p_Vid )
 
   target_frame_num = read_ue_v("SEI: target_frame_num", buf, p_Dec);
 
-#ifdef WRITE_MAP_IMAGE
-  printf( "target_frame_num is %d\n", target_frame_num );
-#endif
-
   num_spare_pics = 1 + read_ue_v("SEI: num_spare_pics_minus1", buf, p_Dec);
-
-#ifdef WRITE_MAP_IMAGE
-  printf( "num_spare_pics is %d\n", num_spare_pics );
-#endif
 
   get_mem3D(&map, num_spare_pics, p_Vid->height >> 4, p_Vid->width >> 4);
 
@@ -382,48 +361,6 @@ void interpret_spare_pic( byte* payload, int size, VideoParameters *p_Vid )
     }
 
   } // end of num_spare_pics
-
-#ifdef WRITE_MAP_IMAGE
-  // begin to write map seq
-  if ( old_pn != p_Vid->number )
-  {
-    old_pn = p_Vid->number;
-    get_mem2Dpel(&Y, p_Vid->height, p_Vid->width);
-    if (first)
-    {
-      fp = fopen( filename, "wb" );
-      first = 0;
-    }
-    else
-      fp = fopen( filename, "ab" );
-    assert( fp != NULL );
-    for (kk=0; kk<num_spare_pics; kk++)
-    {
-      for (i=0; i < p_Vid->height >> 4; i++)
-        for (j=0; j < p_Vid->width >> 4; j++)
-        {
-          tmp=map[kk][i][j]==0? p_Vid->max_pel_value_comp[0] : 0;
-          for (i0=0; i0<16; i0++)
-            for (j0=0; j0<16; j0++)
-              Y[i*16+i0][j*16+j0]=tmp;
-        }
-
-      // write the map image
-      for (i=0; i < p_Vid->height; i++)
-        for (j=0; j < p_Vid->width; j++)
-          fwrite(&(Y[i][j]), symbol_size_in_bytes, 1, p_out);
-
-      for (k=0; k < 2; k++)
-        for (i=0; i < p_Vid->height>>1; i++)
-          for (j=0; j < p_Vid->width>>1; j++)
-            fwrite(&(p_Vid->dc_pred_value_comp[1]), symbol_size_in_bytes, 1, p_out);
-    }
-    fclose( fp );
-    free_mem2Dpel( Y );
-  }
-  // end of writing map image
-#undef WRITE_MAP_IMAGE
-#endif
 
   free_mem3D( map );
 
@@ -1600,11 +1537,6 @@ void interpret_buffering_period_info( byte* payload, int size, VideoParameters *
 
   activate_sps(p_Vid, sps);
 
-#ifdef PRINT_BUFFERING_PERIOD_INFO
-  printf("Buffering period SEI message\n");
-  printf("seq_parameter_set_id   = %d\n", seq_parameter_set_id);
-#endif
-
   // Note: NalHrdBpPresentFlag and CpbDpbDelaysPresentFlag can also be set "by some means not specified in this Recommendation | International Standard"
   if (sps->vui_parameters_present_flag)
   {
@@ -1615,11 +1547,6 @@ void interpret_buffering_period_info( byte* payload, int size, VideoParameters *
       {
         initial_cpb_removal_delay        = read_u_v(sps->vui_seq_parameters.nal_hrd_parameters.initial_cpb_removal_delay_length_minus1+1, "SEI: initial_cpb_removal_delay"        , buf, p_Dec);
         initial_cpb_removal_delay_offset = read_u_v(sps->vui_seq_parameters.nal_hrd_parameters.initial_cpb_removal_delay_length_minus1+1, "SEI: initial_cpb_removal_delay_offset" , buf, p_Dec);
-
-#ifdef PRINT_BUFFERING_PERIOD_INFO
-        printf("nal initial_cpb_removal_delay[%d]        = %d\n", k, initial_cpb_removal_delay);
-        printf("nal initial_cpb_removal_delay_offset[%d] = %d\n", k, initial_cpb_removal_delay_offset);
-#endif
       }
     }
 
@@ -1629,19 +1556,11 @@ void interpret_buffering_period_info( byte* payload, int size, VideoParameters *
       {
         initial_cpb_removal_delay        = read_u_v(sps->vui_seq_parameters.vcl_hrd_parameters.initial_cpb_removal_delay_length_minus1+1, "SEI: initial_cpb_removal_delay"        , buf, p_Dec);
         initial_cpb_removal_delay_offset = read_u_v(sps->vui_seq_parameters.vcl_hrd_parameters.initial_cpb_removal_delay_length_minus1+1, "SEI: initial_cpb_removal_delay_offset" , buf, p_Dec);
-
-#ifdef PRINT_BUFFERING_PERIOD_INFO
-        printf("vcl initial_cpb_removal_delay[%d]        = %d\n", k, initial_cpb_removal_delay);
-        printf("vcl initial_cpb_removal_delay_offset[%d] = %d\n", k, initial_cpb_removal_delay_offset);
-#endif
       }
     }
   }
 
   free (buf);
-#ifdef PRINT_BUFFERING_PERIOD_INFO
-#undef PRINT_BUFFERING_PERIOD_INFO
-#endif
 }
 
 
@@ -1689,11 +1608,6 @@ void interpret_picture_timing_info( byte* payload, int size, VideoParameters *p_
 
   p_Dec->UsedBits = 0;
 
-
-#ifdef PRINT_PICTURE_TIMING_INFO
-  printf("Picture timing SEI message\n");
-#endif
-
   // CpbDpbDelaysPresentFlag can also be set "by some means not specified in this Recommendation | International Standard"
   CpbDpbDelaysPresentFlag =  (Boolean) (active_sps->vui_parameters_present_flag
                               && (   (active_sps->vui_seq_parameters.nal_hrd_parameters_present_flag != 0)
@@ -1720,10 +1634,6 @@ void interpret_picture_timing_info( byte* payload, int size, VideoParameters *p_
     {
       cpb_removal_delay = read_u_v(cpb_removal_len, "SEI: cpb_removal_delay" , buf, p_Dec);
       dpb_output_delay  = read_u_v(dpb_output_len,  "SEI: dpb_output_delay"  , buf, p_Dec);
-#ifdef PRINT_PICTURE_TIMING_INFO
-      printf("cpb_removal_delay = %d\n",cpb_removal_delay);
-      printf("dpb_output_delay  = %d\n",dpb_output_delay);
-#endif
     }
   }
 
@@ -1739,9 +1649,6 @@ void interpret_picture_timing_info( byte* payload, int size, VideoParameters *p_
   if (pic_struct_present_flag)
   {
     pic_struct = read_u_v(4, "SEI: pic_struct" , buf, p_Dec);
-#ifdef PRINT_PICTURE_TIMING_INFO
-    printf("pic_struct = %d\n",pic_struct);
-#endif
     switch (pic_struct)
     {
     case 0:
@@ -1765,9 +1672,6 @@ void interpret_picture_timing_info( byte* payload, int size, VideoParameters *p_
     for (i=0; i<NumClockTs; i++)
     {
       clock_timestamp_flag = read_u_1("SEI: clock_timestamp_flag"  , buf, p_Dec);
-#ifdef PRINT_PICTURE_TIMING_INFO
-      printf("clock_timestamp_flag = %d\n",clock_timestamp_flag);
-#endif
       if (clock_timestamp_flag)
       {
         ct_type               = read_u_v(2, "SEI: ct_type"               , buf, p_Dec);
@@ -1778,53 +1682,26 @@ void interpret_picture_timing_info( byte* payload, int size, VideoParameters *p_
         cnt_dropped_flag      = read_u_1(   "SEI: cnt_dropped_flag"      , buf, p_Dec);
         nframes               = read_u_v(8, "SEI: nframes"               , buf, p_Dec);
 
-#ifdef PRINT_PICTURE_TIMING_INFO
-        printf("ct_type               = %d\n",ct_type);
-        printf("nuit_field_based_flag = %d\n",nuit_field_based_flag);
-        printf("full_timestamp_flag   = %d\n",full_timestamp_flag);
-        printf("discontinuity_flag    = %d\n",discontinuity_flag);
-        printf("cnt_dropped_flag      = %d\n",cnt_dropped_flag);
-        printf("nframes               = %d\n",nframes);
-#endif
         if (full_timestamp_flag)
         {
           seconds_value         = read_u_v(6, "SEI: seconds_value"   , buf, p_Dec);
           minutes_value         = read_u_v(6, "SEI: minutes_value"   , buf, p_Dec);
           hours_value           = read_u_v(5, "SEI: hours_value"     , buf, p_Dec);
-#ifdef PRINT_PICTURE_TIMING_INFO
-          printf("seconds_value = %d\n",seconds_value);
-          printf("minutes_value = %d\n",minutes_value);
-          printf("hours_value   = %d\n",hours_value);
-#endif
         }
         else
         {
           seconds_flag          = read_u_1(   "SEI: seconds_flag" , buf, p_Dec);
-#ifdef PRINT_PICTURE_TIMING_INFO
-          printf("seconds_flag = %d\n",seconds_flag);
-#endif
           if (seconds_flag)
           {
             seconds_value         = read_u_v(6, "SEI: seconds_value"   , buf, p_Dec);
             minutes_flag          = read_u_1(   "SEI: minutes_flag" , buf, p_Dec);
-#ifdef PRINT_PICTURE_TIMING_INFO
-            printf("seconds_value = %d\n",seconds_value);
-            printf("minutes_flag  = %d\n",minutes_flag);
-#endif
             if(minutes_flag)
             {
               minutes_value         = read_u_v(6, "SEI: minutes_value"   , buf, p_Dec);
               hours_flag            = read_u_1(   "SEI: hours_flag" , buf, p_Dec);
-#ifdef PRINT_PICTURE_TIMING_INFO
-              printf("minutes_value = %d\n",minutes_value);
-              printf("hours_flag    = %d\n",hours_flag);
-#endif
               if(hours_flag)
               {
                 hours_value           = read_u_v(5, "SEI: hours_value"     , buf, p_Dec);
-#ifdef PRINT_PICTURE_TIMING_INFO
-                printf("hours_value   = %d\n",hours_value);
-#endif
               }
             }
           }
@@ -1841,18 +1718,12 @@ void interpret_picture_timing_info( byte* payload, int size, VideoParameters *p_
             time_offset = read_i_v(time_offset_length, "SEI: time_offset"   , buf, p_Dec);
           else
             time_offset = 0;
-#ifdef PRINT_PICTURE_TIMING_INFO
-          printf("time_offset   = %d\n",time_offset);
-#endif
         }
       }
     }
   }
 
   free (buf);
-#ifdef PRINT_PICTURE_TIMING_INFO
-#undef PRINT_PICTURE_TIMING_INFO
-#endif
 }
 
 /*!

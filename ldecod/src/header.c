@@ -287,7 +287,7 @@ int RestOfSliceHeader(Slice *currSlice)
       error ("slice_qs_delta makes slice_qs_y out of range", 500);
   }
 
-  if ( !HI_intra_only_profile(active_sps->profile_idc, active_sps->constrained_set3_flag) || (p_Inp->intra_profile_deblocking == 1) )
+  if ( !HI_intra_only_profile(active_sps->profile_idc, active_sps->constrained_set3_flag))
   //then read flags and parameters from bistream
   {
 #if DPF_PARAM_DISP

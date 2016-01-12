@@ -209,12 +209,13 @@ void ParseCommand(InputParameters *p_Inp, int ac, char *av[])
       strncpy(p_Inp->infile, av[CLcount+1], FILE_NAME_SIZE);
       CLcount += 2;
     } 
+	#if 0
     else if (0 == strncmp (av[CLcount], "-r", 2) || 0 == strncmp (av[CLcount], "-R", 2))  // A file parameter?
     {
       strncpy(p_Inp->reffile, av[CLcount+1], FILE_NAME_SIZE);
       CLcount += 2;
     } 
-	#if 0
+	
     else if (0 == strncmp (av[CLcount], "-o", 2) || 0 == strncmp (av[CLcount], "-O", 2))  // A file parameter?
     {
       strncpy(p_Inp->outfile, av[CLcount+1], FILE_NAME_SIZE);
@@ -310,7 +311,7 @@ static void PatchInp (InputParameters *p_Inp)
   //int i;
   //int storedBplus1;
   TestParams(Map, NULL);
-  if(p_Inp->export_views == 1)
-    p_Inp->dpb_plus[1] = imax(1, p_Inp->dpb_plus[1]);
+  //if(p_Inp->export_views == 1)
+    //p_Inp->dpb_plus[1] = imax(1, p_Inp->dpb_plus[1]);
 }
 

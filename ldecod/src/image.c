@@ -37,7 +37,6 @@
 #include "header.h"
 
 #include "sei.h"
-#include "output.h"
 #include "mb_access.h"
 #include "memalloc.h"
 #include "macroblock.h"
@@ -166,6 +165,7 @@ static void init_mvc_picture(Slice *currSlice)
  ************************************************************************
  */
 //当读取到新一帧的第一个片时调用  (需要处理完p_Vid->dec_picture)
+#if 1
 static void init_picture(VideoParameters *p_Vid, Slice *currSlice, InputParameters *p_Inp)
 {
   int i;
@@ -391,6 +391,7 @@ static void init_picture(VideoParameters *p_Vid, Slice *currSlice, InputParamete
     copy_dec_picture_JV( p_Vid, p_Vid->dec_picture_JV[2], p_Vid->dec_picture_JV[0] );
   }
 }
+#endif
 
 static void update_mbaff_macroblock_data(imgpel **cur_img, imgpel (*temp)[16], int x0, int width, int height)
 {
@@ -1015,18 +1016,6 @@ process_nalu:
     case NALU_TYPE_SLICE:
     case NALU_TYPE_IDR: //进入普通解码过程
 		//slice都不使用(A/B/C)分区的过程
-
-		#if 0
-		if(nalu->nal_unit_type == NALU_TYPE_IDR)
-		{
-			//printf("start2decode: idx:%2d, cur_idr_pos: %5d\n",p_Dec->nalu_pos_array_idx,p_Dec->nalu_pos_array[p_Dec->nalu_pos_array_idx]);
-		}
-		else
-		{
-			//printf("start2decode: idx:%2d, cur_noidr_pos: %5d\n",p_Dec->nalu_pos_array_idx,p_Dec->nalu_pos_array[p_Dec->nalu_pos_array_idx]);			
-		}
-		#endif
-		
       if (p_Vid->recovery_point || nalu->nal_unit_type == NALU_TYPE_IDR)
       {
         if (p_Vid->recovery_point_found == 0)
@@ -1421,11 +1410,7 @@ void exit_picture(VideoParameters *p_Vid, StorablePicture **dec_picture)
   InputParameters *p_Inp = p_Vid->p_Inp;
   SNRParameters   *snr   = p_Vid->snr;
   char yuv_types[4][6]= {"4:0:0","4:2:0","4:2:2","4:4:4"};
-#if (DISABLE_ERC == 0)
-  int ercStartMB;
-  int ercSegment;
-  frame recfr;
-#endif
+
   int structure, frame_poc, slice_type, refpic, qp, pic_num, chroma_format_idc, is_idr;
 
   int64 tmp_time;                   // time used by decoding the last frame
@@ -1436,67 +1421,9 @@ void exit_picture(VideoParameters *p_Vid, StorablePicture **dec_picture)
   {
     return;
   }
-
 #if 0
-#if (DISABLE_ERC == 0)
-  recfr.p_Vid = p_Vid;
-  recfr.yptr = &(*dec_picture)->imgY[0][0];
-  if ((*dec_picture)->chroma_format_idc != YUV400)
-  {
-    recfr.uptr = &(*dec_picture)->imgUV[0][0][0];
-    recfr.vptr = &(*dec_picture)->imgUV[1][0][0];
-  }
-  
-  //! this is always true at the beginning of a picture
-  ercStartMB = 0;
-  ercSegment = 0;
-
-  //! mark the start of the first segment
-  if (!(*dec_picture)->mb_aff_frame_flag)
-  {
-    int i;
-    ercStartSegment(0, ercSegment, 0 , p_Vid->erc_errorVar);
-    //! generate the segments according to the macroblock map
-    for(i = 1; i < (int) (*dec_picture)->PicSizeInMbs; ++i)
-    {
-      if(p_Vid->mb_data[i].ei_flag != p_Vid->mb_data[i-1].ei_flag)
-      {
-        ercStopSegment(i-1, ercSegment, 0, p_Vid->erc_errorVar); //! stop current segment
-
-        //! mark current segment as lost or OK
-        //if(p_Vid->mb_data[i-1].ei_flag)
-          //ercMarkCurrSegmentLost((*dec_picture)->size_x, p_Vid->erc_errorVar);
-        //else
-          //ercMarkCurrSegmentOK((*dec_picture)->size_x, p_Vid->erc_errorVar);
-
-        ++ercSegment;  //! next segment
-        ercStartSegment(i, ercSegment, 0 , p_Vid->erc_errorVar); //! start new segment
-        ercStartMB = i;//! save start MB for this segment
-      }
-    }
-    //! mark end of the last segment
-    ercStopSegment((*dec_picture)->PicSizeInMbs-1, ercSegment, 0, p_Vid->erc_errorVar);
-    if(p_Vid->mb_data[i-1].ei_flag)
-      ercMarkCurrSegmentLost((*dec_picture)->size_x, p_Vid->erc_errorVar);
-    else
-      ercMarkCurrSegmentOK((*dec_picture)->size_x, p_Vid->erc_errorVar);
-
-    //! call the right error concealment function depending on the frame type.
-    p_Vid->erc_mvperMB /= (*dec_picture)->PicSizeInMbs;
-
-    p_Vid->erc_img = p_Vid;
-#endif
-	//误码掩盖
-#if 0	
-    if((*dec_picture)->slice_type == I_SLICE || (*dec_picture)->slice_type == SI_SLICE) // I-frame
-      ercConcealIntraFrame(p_Vid, &recfr, (*dec_picture)->size_x, (*dec_picture)->size_y, p_Vid->erc_errorVar);
-    else
-      ercConcealInterFrame(&recfr, p_Vid->erc_object_list, (*dec_picture)->size_x, (*dec_picture)->size_y, p_Vid->erc_errorVar, (*dec_picture)->chroma_format_idc);
-  }
-#endif	  
-#endif
-
-  if(p_Vid->bDeblockEnable & (1<<(*dec_picture)->used_for_reference))
+  //if(p_Vid->bDeblockEnable & (1<<(*dec_picture)->used_for_reference))
+  if(0x03 & (1<<(*dec_picture)->used_for_reference))
   {
     //deblocking for frame or field
     if( (p_Vid->separate_colour_plane_flag != 0) )
@@ -1524,7 +1451,7 @@ void exit_picture(VideoParameters *p_Vid, StorablePicture **dec_picture)
       make_frame_picture_JV(p_Vid);
     }
   }
-
+#endif
   if ((*dec_picture)->mb_aff_frame_flag)
     MbAffPostProc(p_Vid);
 
@@ -1532,13 +1459,7 @@ void exit_picture(VideoParameters *p_Vid, StorablePicture **dec_picture)
     frame_postprocessing(p_Vid);
   else
     field_postprocessing(p_Vid);   // reset all interlaced variables
-#if (MVC_EXTENSION_ENABLE)
-  if((*dec_picture)->used_for_reference || ((*dec_picture)->inter_view_flag == 1))
-    //pad_dec_picture(p_Vid, *dec_picture);
-#else
-  if((*dec_picture)->used_for_reference)
-    //pad_dec_picture(p_Vid, *dec_picture);
-#endif
+
   structure  = (*dec_picture)->structure;
   slice_type = (*dec_picture)->slice_type;
   frame_poc  = (*dec_picture)->frame_poc;  
@@ -1548,11 +1469,6 @@ void exit_picture(VideoParameters *p_Vid, StorablePicture **dec_picture)
   is_idr     = (*dec_picture)->idr_flag;
 
   chroma_format_idc = (*dec_picture)->chroma_format_idc;
-#if MVC_EXTENSION_ENABLE
-  //store_picture_in_dpb(p_Vid->p_Dpb_layer[(*dec_picture)->view_id], *dec_picture);
-#else
-  //store_picture_in_dpb(p_Vid->p_Dpb_layer[0], *dec_picture);
-#endif
 
   *dec_picture=NULL;
 
@@ -1613,20 +1529,24 @@ void exit_picture(VideoParameters *p_Vid, StorablePicture **dec_picture)
     tmp_time  = timenorm(tmp_time);
     sprintf(yuvFormat,"%s", yuv_types[chroma_format_idc]);
 
+#if 1
     if (p_Inp->silent == FALSE)
     {
       SNRParameters   *snr = p_Vid->snr;
-      if (p_Vid->p_ref != -1)
-        fprintf(stdout,"%05d(%s%5d %5d %5d %8.4f %8.4f %8.4f  %s %7d\n",
-        p_Vid->frame_no, p_Vid->cslice_type, frame_poc, pic_num, qp, snr->snr[0], snr->snr[1], snr->snr[2], yuvFormat, (int) tmp_time);
-      else
+      //if (p_Vid->p_ref != -1)
+        //fprintf(stdout,"%05d(%s%5d %5d %5d %8.4f %8.4f %8.4f  %s %7d\n",
+        //p_Vid->frame_no, p_Vid->cslice_type, frame_poc, pic_num, qp, snr->snr[0], snr->snr[1], snr->snr[2], yuvFormat, (int) tmp_time);
+      //else
+      //此处输出每帧的信息
         fprintf(stdout,"%05d(%s%5d %5d %5d                             %s %7d\n",
         p_Vid->frame_no, p_Vid->cslice_type, frame_poc, pic_num, qp, yuvFormat, (int)tmp_time);
     }
     else
       fprintf(stdout,"Completed Decoding frame %05d.\r",snr->frame_ctr);
+#endif
 
     fflush(stdout);
+	
 
     if(slice_type == I_SLICE || slice_type == SI_SLICE || slice_type == P_SLICE || refpic)   // I or P pictures
     {

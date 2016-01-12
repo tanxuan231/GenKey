@@ -131,7 +131,6 @@ int ercConcealInterFrame( frame *recfr, objectBuffer_t *object_list,
 /* Thomson APIs for concealing entire frame loss */
 
 #include "mbuffer.h"
-#include "output.h"
 
 struct concealment_node {
     StorablePicture* picture;

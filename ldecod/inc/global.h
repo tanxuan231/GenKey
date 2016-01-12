@@ -793,11 +793,11 @@ typedef struct video_par
   int64 tot_time;
 
   // files
-  int p_out;                       //!< file descriptor to output YUV file
+  //int p_out;                       //!< file descriptor to output YUV file
 #if (MVC_EXTENSION_ENABLE)
-  int p_out_mvc[MAX_VIEW_NUM];     //!< file descriptor to output YUV file for MVC
+  //int p_out_mvc[MAX_VIEW_NUM];     //!< file descriptor to output YUV file for MVC
 #endif
-  int p_ref;                       //!< pointer to input original reference YUV file file
+  //int p_ref;                       //!< pointer to input original reference YUV file file
 
   //FILE *p_log;                     //!< SNR file
   int LastAccessUnitExists;
@@ -866,7 +866,7 @@ typedef struct video_par
   int iChromaPadX;
   int iChromaPadY;
   //control;
-  int bDeblockEnable;
+  //int bDeblockEnable;
   int iPostProcess;
   int bFrameInit;
 #if _FLTDBG_
@@ -946,14 +946,14 @@ typedef struct inp_par
 {
   char infile[FILE_NAME_SIZE];                       //!< H.264 inputfile
   //char outfile[FILE_NAME_SIZE];                      //!< Decoded YUV 4:2:0 output
-  char reffile[FILE_NAME_SIZE];                      //!< Optional YUV 4:2:0 reference file for SNR measurement
+  //char reffile[FILE_NAME_SIZE];                      //!< Optional YUV 4:2:0 reference file for SNR measurement
 
   int FileFormat;                         //!< File format of the Input file, PAR_OF_ANNEXB or PAR_OF_RTP
   int ref_offset;
   int poc_scale;
-  int write_uv;
+  //int write_uv;
   int silent;	//¾²Ä¬,ÎÞprintf
-  int intra_profile_deblocking;               //!< Loop filter usage determined by flags and parameters in bitstream 
+  //int intra_profile_deblocking;               //!< Loop filter usage determined by flags and parameters in bitstream 
 
   // Input/output sequence format related variables
   FrameFormat source;                   //!< source related information
@@ -968,12 +968,12 @@ typedef struct inp_par
   int  DecodeAllLayers;
 #endif
 
-#ifdef _LEAKYBUCKET_
-  unsigned long R_decoder;                //!< Decoder Rate in HRD Model
-  unsigned long B_decoder;                //!< Decoder Buffer size in HRD model
-  unsigned long F_decoder;                //!< Decoder Initial buffer fullness in HRD model
-  char LeakyBucketParamFile[FILE_NAME_SIZE];         //!< LeakyBucketParamFile
-#endif
+//#ifdef _LEAKYBUCKET_
+  //unsigned long R_decoder;                //!< Decoder Rate in HRD Model
+  //unsigned long B_decoder;                //!< Decoder Buffer size in HRD model
+  //unsigned long F_decoder;                //!< Decoder Initial buffer fullness in HRD model
+  //char LeakyBucketParamFile[FILE_NAME_SIZE];         //!< LeakyBucketParamFile
+//#endif
 
   // picture error concealment
   //int conceal_mode;
@@ -992,7 +992,7 @@ typedef struct inp_par
   int iDecFrmNum;
 
   int bDisplayDecParams;
-  int dpb_plus[2];
+  //int dpb_plus[2];
 } InputParameters;
 
 typedef struct old_slice_par
