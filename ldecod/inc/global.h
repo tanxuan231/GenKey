@@ -373,9 +373,9 @@ typedef struct slice
   int Transform8x8Mode;
   Boolean chroma444_not_separate;              //!< indicates chroma 4:4:4 coding with separate_colour_plane_flag equal to zero
 
-  int toppoc;      //poc for this top field
-  int bottompoc;   //poc of bottom field of frame
-  int framepoc;    //poc of this frame
+  //int toppoc;      //poc for this top field
+  //int bottompoc;   //poc of bottom field of frame
+  //int framepoc;    //poc of this frame
 
   //the following is for slice header syntax elements of poc
   // for poc mode 0.
@@ -393,7 +393,7 @@ typedef struct slice
 
   // for POC mode 1:
   unsigned int AbsFrameNum;
-  int ThisPOC;
+  //int ThisPOC;
   //signed int ExpectedPicOrderCnt, PicOrderCntCycleCnt, FrameNumInPicOrderCntCycle;
   //unsigned int PreviousFrameNum, FrameNumOffset;
   //int ExpectedDeltaPerPicOrderCntCycle;
@@ -554,7 +554,7 @@ typedef struct slice
   void (*read_motion_info_from_NAL)    (Macroblock *currMB);
   void (*read_one_macroblock      )    (Macroblock *currMB);
   void (*interpret_mb_mode        )    (Macroblock *currMB);
-  void (*init_lists               )    (struct slice *currSlice);
+  //void (*init_lists               )    (struct slice *currSlice);
 
   void (*intra_pred_chroma        )    (Macroblock *currMB);
 
@@ -743,7 +743,7 @@ typedef struct video_par
   signed int ExpectedPicOrderCnt, PicOrderCntCycleCnt, FrameNumInPicOrderCntCycle;
   unsigned int PreviousFrameNum, FrameNumOffset;
   int ExpectedDeltaPerPicOrderCntCycle;
-  int ThisPOC;
+  //int ThisPOC;
   int PreviousFrameNumOffset;
   // /////////////////////////
 
@@ -755,8 +755,8 @@ typedef struct video_par
   int last_has_mmco_5;
   int last_pic_bottom_field;
 
-  int idr_psnr_number;
-  int psnr_number;
+  //int idr_psnr_number;
+  //int psnr_number;
 
   // Timing related variables
   TIME_T start_time;
@@ -764,8 +764,8 @@ typedef struct video_par
 
   // picture error concealment
   int last_ref_pic_poc;
-  int ref_poc_gap;
-  int poc_gap;
+  //int ref_poc_gap;
+  //int poc_gap;
   //int conceal_mode;
   int earlier_missing_poc;
   unsigned int frame_to_conceal;
@@ -778,7 +778,7 @@ typedef struct video_par
   int recovery_point_found;
   int recovery_frame_cnt;
   int recovery_frame_num;
-  int recovery_poc;
+  //int recovery_poc;
 
   byte *buf;
   byte *ibuf;
@@ -945,15 +945,9 @@ typedef struct snr_par
 typedef struct inp_par
 {
   char infile[FILE_NAME_SIZE];                       //!< H.264 inputfile
-  //char outfile[FILE_NAME_SIZE];                      //!< Decoded YUV 4:2:0 output
-  //char reffile[FILE_NAME_SIZE];                      //!< Optional YUV 4:2:0 reference file for SNR measurement
 
   int FileFormat;                         //!< File format of the Input file, PAR_OF_ANNEXB or PAR_OF_RTP
-  int ref_offset;
-  int poc_scale;
-  //int write_uv;
   int silent;	//¾²Ä¬,ÎÞprintf
-  //int intra_profile_deblocking;               //!< Loop filter usage determined by flags and parameters in bitstream 
 
   // Input/output sequence format related variables
   FrameFormat source;                   //!< source related information
@@ -968,18 +962,8 @@ typedef struct inp_par
   int  DecodeAllLayers;
 #endif
 
-//#ifdef _LEAKYBUCKET_
-  //unsigned long R_decoder;                //!< Decoder Rate in HRD Model
-  //unsigned long B_decoder;                //!< Decoder Buffer size in HRD model
-  //unsigned long F_decoder;                //!< Decoder Initial buffer fullness in HRD model
-  //char LeakyBucketParamFile[FILE_NAME_SIZE];         //!< LeakyBucketParamFile
-//#endif
-
-  // picture error concealment
-  //int conceal_mode;
-  int ref_poc_gap;
-  int poc_gap;
-
+  //int ref_poc_gap;
+  //int poc_gap;
 
   // dummy for encoder
   int start_frame;
@@ -992,7 +976,6 @@ typedef struct inp_par
   int iDecFrmNum;
 
   int bDisplayDecParams;
-  //int dpb_plus[2];
 } InputParameters;
 
 typedef struct old_slice_par

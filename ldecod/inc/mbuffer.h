@@ -46,9 +46,9 @@ typedef struct storable_picture
   PictureStructure structure;
 
   int         poc;
-  int         top_poc;
-  int         bottom_poc;
-  int         frame_poc;
+  //int         top_poc;
+  //int         bottom_poc;
+  //int         frame_poc;
   unsigned int  frame_num;
   unsigned int  recovery_frame;
 
@@ -206,14 +206,5 @@ extern StorablePicture*  alloc_storable_picture(VideoParameters *p_Vid, PictureS
 extern void              free_storable_picture (StorablePicture* p);
 extern StorablePicture*  get_short_term_pic (Slice *currSlice, DecodedPictureBuffer *p_Dpb, int picNum);
 
-extern void unmark_for_reference(FrameStore* fs);
-extern void unmark_for_long_term_reference(FrameStore* fs);
-
-extern void             init_lists_p_slice (Slice *currSlice);
-extern void             init_lists_b_slice (Slice *currSlice);
-extern void             init_lists_i_slice (Slice *currSlice);
-extern void             update_pic_num     (Slice *currSlice);
-
-extern void             init_mbaff_lists     (VideoParameters *p_Vid, Slice *currSlice);
 #endif
 

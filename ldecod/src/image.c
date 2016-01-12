@@ -109,6 +109,7 @@ static void init_mvc_picture(Slice *currSlice)
 
   StorablePicture *p_pic = NULL;
 
+#if 0
   // find BL reconstructed picture
   if (currSlice->structure  == FRAME)
   {
@@ -146,6 +147,7 @@ static void init_mvc_picture(Slice *currSlice)
       }
     }
   }
+#endif  
   if(!p_pic)
   {
     p_Vid->bFrameInit = 0;
@@ -204,11 +206,11 @@ static void init_picture(VideoParameters *p_Vid, Slice *currSlice, InputParamete
   //calculate POC
   //decode_poc(p_Vid, currSlice);
 
-  if (p_Vid->recovery_frame_num == (int) currSlice->frame_num && p_Vid->recovery_poc == 0x7fffffff)
-    p_Vid->recovery_poc = currSlice->framepoc;
+  //if (p_Vid->recovery_frame_num == (int) currSlice->frame_num && p_Vid->recovery_poc == 0x7fffffff)
+    //p_Vid->recovery_poc = currSlice->framepoc;
 
-  if(currSlice->nal_reference_idc)
-    p_Vid->last_ref_pic_poc = currSlice->framepoc;
+  //if(currSlice->nal_reference_idc)
+    //p_Vid->last_ref_pic_poc = currSlice->framepoc;
 
   //  dumppoc (p_Vid);
 
@@ -218,9 +220,9 @@ static void init_picture(VideoParameters *p_Vid, Slice *currSlice, InputParamete
   }
 
   dec_picture = p_Vid->dec_picture = alloc_storable_picture (p_Vid, currSlice->structure, p_Vid->width, p_Vid->height, p_Vid->width_cr, p_Vid->height_cr, 1);
-  dec_picture->top_poc=currSlice->toppoc;
-  dec_picture->bottom_poc=currSlice->bottompoc;
-  dec_picture->frame_poc=currSlice->framepoc;
+  //dec_picture->top_poc=currSlice->toppoc;
+  //dec_picture->bottom_poc=currSlice->bottompoc;
+  //dec_picture->frame_poc=currSlice->framepoc;
   dec_picture->qp = currSlice->qp;
   dec_picture->slice_qp_delta = currSlice->slice_qp_delta;
   dec_picture->chroma_qp_offset[0] = p_Vid->active_pps->chroma_qp_index_offset;
@@ -250,19 +252,19 @@ static void init_picture(VideoParameters *p_Vid, Slice *currSlice, InputParamete
   {
   case TOP_FIELD:
     {
-      dec_picture->poc = currSlice->toppoc;
+      //dec_picture->poc = currSlice->toppoc;
       p_Vid->number *= 2;
       break;
     }
   case BOTTOM_FIELD:
     {
-      dec_picture->poc = currSlice->bottompoc;
+      //dec_picture->poc = currSlice->bottompoc;
       p_Vid->number = p_Vid->number * 2 + 1;
       break;
     }
   case FRAME:
     {
-      dec_picture->poc = currSlice->framepoc;
+      //dec_picture->poc = currSlice->framepoc;
       break;
     }
   default:
@@ -440,135 +442,6 @@ static void MbAffPostProc(VideoParameters *p_Vid)
   }
 }
 
-static void fill_wp_params(Slice *currSlice)
-{
-  if (currSlice->slice_type == B_SLICE)
-  {
-    int i, j, k;
-    int comp;
-    int log_weight_denom;
-    int tb, td;  
-    int tx,DistScaleFactor;
-
-    int max_l0_ref = currSlice->num_ref_idx_active[LIST_0];
-    int max_l1_ref = currSlice->num_ref_idx_active[LIST_1];
-
-    if (currSlice->active_pps->weighted_bipred_idc == 2)
-    {
-      currSlice->luma_log2_weight_denom = 5;
-      currSlice->chroma_log2_weight_denom = 5;
-      currSlice->wp_round_luma   = 16;
-      currSlice->wp_round_chroma = 16;
-
-      for (i=0; i<MAX_REFERENCE_PICTURES; ++i)
-      {
-        for (comp=0; comp<3; ++comp)
-        {
-          log_weight_denom = (comp == 0) ? currSlice->luma_log2_weight_denom : currSlice->chroma_log2_weight_denom;
-          currSlice->wp_weight[0][i][comp] = 1 << log_weight_denom;
-          currSlice->wp_weight[1][i][comp] = 1 << log_weight_denom;
-          currSlice->wp_offset[0][i][comp] = 0;
-          currSlice->wp_offset[1][i][comp] = 0;
-        }
-      }
-    }
-
-    for (i=0; i<max_l0_ref; ++i)
-    {
-      for (j=0; j<max_l1_ref; ++j)
-      {
-        for (comp = 0; comp<3; ++comp)
-        {
-          log_weight_denom = (comp == 0) ? currSlice->luma_log2_weight_denom : currSlice->chroma_log2_weight_denom;
-          if (currSlice->active_pps->weighted_bipred_idc == 1)
-          {
-            currSlice->wbp_weight[0][i][j][comp] =  currSlice->wp_weight[0][i][comp];
-            currSlice->wbp_weight[1][i][j][comp] =  currSlice->wp_weight[1][j][comp];
-          }
-          else if (currSlice->active_pps->weighted_bipred_idc == 2)
-          {
-            td = iClip3(-128,127,currSlice->listX[LIST_1][j]->poc - currSlice->listX[LIST_0][i]->poc);
-            if (td == 0 || currSlice->listX[LIST_1][j]->is_long_term || currSlice->listX[LIST_0][i]->is_long_term)
-            {
-              currSlice->wbp_weight[0][i][j][comp] = 32;
-              currSlice->wbp_weight[1][i][j][comp] = 32;
-            }
-            else
-            {
-              tb = iClip3(-128,127,currSlice->ThisPOC - currSlice->listX[LIST_0][i]->poc);
-
-              tx = (16384 + iabs(td/2))/td;
-              DistScaleFactor = iClip3(-1024, 1023, (tx*tb + 32 )>>6);
-
-              currSlice->wbp_weight[1][i][j][comp] = DistScaleFactor >> 2;
-              currSlice->wbp_weight[0][i][j][comp] = 64 - currSlice->wbp_weight[1][i][j][comp];
-              if (currSlice->wbp_weight[1][i][j][comp] < -64 || currSlice->wbp_weight[1][i][j][comp] > 128)
-              {
-                currSlice->wbp_weight[0][i][j][comp] = 32;
-                currSlice->wbp_weight[1][i][j][comp] = 32;
-                currSlice->wp_offset[0][i][comp] = 0;
-                currSlice->wp_offset[1][j][comp] = 0;
-              }
-            }
-          }
-        }
-      }
-    }
-
-    if (currSlice->mb_aff_frame_flag)
-    {
-      for (i=0; i<2*max_l0_ref; ++i)
-      {
-        for (j=0; j<2*max_l1_ref; ++j)
-        {
-          for (comp = 0; comp<3; ++comp)
-          {
-            for (k=2; k<6; k+=2)
-            {
-              currSlice->wp_offset[k+0][i][comp] = currSlice->wp_offset[0][i>>1][comp];
-              currSlice->wp_offset[k+1][j][comp] = currSlice->wp_offset[1][j>>1][comp];
-
-              log_weight_denom = (comp == 0) ? currSlice->luma_log2_weight_denom : currSlice->chroma_log2_weight_denom;
-              if (currSlice->active_pps->weighted_bipred_idc == 1)
-              {
-                currSlice->wbp_weight[k+0][i][j][comp] =  currSlice->wp_weight[0][i>>1][comp];
-                currSlice->wbp_weight[k+1][i][j][comp] =  currSlice->wp_weight[1][j>>1][comp];
-              }
-              else if (currSlice->active_pps->weighted_bipred_idc == 2)
-              {
-                td = iClip3(-128, 127, currSlice->listX[k+LIST_1][j]->poc - currSlice->listX[k+LIST_0][i]->poc);
-                if (td == 0 || currSlice->listX[k+LIST_1][j]->is_long_term || currSlice->listX[k+LIST_0][i]->is_long_term)
-                {
-                  currSlice->wbp_weight[k+0][i][j][comp] =   32;
-                  currSlice->wbp_weight[k+1][i][j][comp] =   32;
-                }
-                else
-                {
-                  tb = iClip3(-128,127,((k==2)?currSlice->toppoc:currSlice->bottompoc) - currSlice->listX[k+LIST_0][i]->poc);
-
-                  tx = (16384 + iabs(td/2))/td;
-                  DistScaleFactor = iClip3(-1024, 1023, (tx*tb + 32 )>>6);
-
-                  currSlice->wbp_weight[k+1][i][j][comp] = DistScaleFactor >> 2;
-                  currSlice->wbp_weight[k+0][i][j][comp] = 64 - currSlice->wbp_weight[k+1][i][j][comp];
-                  if (currSlice->wbp_weight[k+1][i][j][comp] < -64 || currSlice->wbp_weight[k+1][i][j][comp] > 128)
-                  {
-                    currSlice->wbp_weight[k+1][i][j][comp] = 32;
-                    currSlice->wbp_weight[k+0][i][j][comp] = 32;
-                    currSlice->wp_offset[k+0][i][comp] = 0;
-                    currSlice->wp_offset[k+1][j][comp] = 0;
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-
 
 static void init_picture_decoding(VideoParameters *p_Vid)
 {
@@ -636,7 +509,7 @@ void init_slice(VideoParameters *p_Vid, Slice *currSlice)
   p_Vid->active_sps = currSlice->active_sps;
   p_Vid->active_pps = currSlice->active_pps;
 
-  currSlice->init_lists (currSlice);	//need fix
+  //currSlice->init_lists (currSlice);	//need fix
 
 #if 0
 #if (MVC_EXTENSION_ENABLE)
@@ -753,10 +626,10 @@ static void Error_tracking(VideoParameters *p_Vid, Slice *currSlice)
 
 static void CopyPOC(Slice *pSlice0, Slice *currSlice)
 {
-  currSlice->framepoc  = pSlice0->framepoc;
-  currSlice->toppoc    = pSlice0->toppoc;
-  currSlice->bottompoc = pSlice0->bottompoc;  
-  currSlice->ThisPOC   = pSlice0->ThisPOC;
+  //currSlice->framepoc  = pSlice0->framepoc;
+  //currSlice->toppoc    = pSlice0->toppoc;
+  //currSlice->bottompoc = pSlice0->bottompoc;  
+  //currSlice->ThisPOC   = pSlice0->ThisPOC;
 }
 
 
@@ -856,7 +729,7 @@ int decode_one_frame(DecoderParams *pDecoder)
        p_Vid->dec_picture->max_slice_id = (short) imax(currSlice->current_slice_nr, p_Vid->dec_picture->max_slice_id);
        if(p_Vid->iSliceNumOfCurrPic >0)
        {
-         CopyPOC(*ppSliceList, currSlice);	//*ppSliceList -> currSlice
+         //CopyPOC(*ppSliceList, currSlice);	//*ppSliceList -> currSlice
          ppSliceList[p_Vid->iSliceNumOfCurrPic-1]->end_mb_nr_plus1 = currSlice->start_mb_nr;
        }
 	   
@@ -933,12 +806,12 @@ int decode_one_frame(DecoderParams *pDecoder)
 #if MVC_EXTENSION_ENABLE
   p_Vid->last_dec_view_id = p_Vid->dec_picture->view_id;
 #endif
-  if(p_Vid->dec_picture->structure == FRAME)
-    p_Vid->last_dec_poc = p_Vid->dec_picture->frame_poc;
-  else if(p_Vid->dec_picture->structure == TOP_FIELD)
-    p_Vid->last_dec_poc = p_Vid->dec_picture->top_poc;
-  else if(p_Vid->dec_picture->structure == BOTTOM_FIELD)
-    p_Vid->last_dec_poc = p_Vid->dec_picture->bottom_poc;
+  //if(p_Vid->dec_picture->structure == FRAME)
+    //p_Vid->last_dec_poc = p_Vid->dec_picture->frame_poc;
+  //else if(p_Vid->dec_picture->structure == TOP_FIELD)
+    //p_Vid->last_dec_poc = p_Vid->dec_picture->top_poc;
+  //else if(p_Vid->dec_picture->structure == BOTTOM_FIELD)
+    //p_Vid->last_dec_poc = p_Vid->dec_picture->bottom_poc;
 
 #if 1	  
   exit_picture(p_Vid, &p_Vid->dec_picture);
@@ -1462,7 +1335,7 @@ void exit_picture(VideoParameters *p_Vid, StorablePicture **dec_picture)
 
   structure  = (*dec_picture)->structure;
   slice_type = (*dec_picture)->slice_type;
-  frame_poc  = (*dec_picture)->frame_poc;  
+  //frame_poc  = (*dec_picture)->frame_poc;  
   refpic     = (*dec_picture)->used_for_reference;
   qp         = (*dec_picture)->qp;
   pic_num    = (*dec_picture)->pic_num;
@@ -1538,8 +1411,8 @@ void exit_picture(VideoParameters *p_Vid, StorablePicture **dec_picture)
         //p_Vid->frame_no, p_Vid->cslice_type, frame_poc, pic_num, qp, snr->snr[0], snr->snr[1], snr->snr[2], yuvFormat, (int) tmp_time);
       //else
       //此处输出每帧的信息
-        fprintf(stdout,"%05d(%s%5d %5d %5d                             %s %7d\n",
-        p_Vid->frame_no, p_Vid->cslice_type, frame_poc, pic_num, qp, yuvFormat, (int)tmp_time);
+        fprintf(stdout,"%05d(%s%5d %5d                             %s %7d\n",
+        p_Vid->frame_no, p_Vid->cslice_type, pic_num, qp, yuvFormat, (int)tmp_time);
     }
     else
       fprintf(stdout,"Completed Decoding frame %05d.\r",snr->frame_ctr);
@@ -1727,9 +1600,9 @@ void field_postprocessing(VideoParameters *p_Vid)
  */
 void copy_dec_picture_JV( VideoParameters *p_Vid, StorablePicture *dst, StorablePicture *src )
 {
-  dst->top_poc              = src->top_poc;
-  dst->bottom_poc           = src->bottom_poc;
-  dst->frame_poc            = src->frame_poc;
+  //dst->top_poc              = src->top_poc;
+  //dst->bottom_poc           = src->bottom_poc;
+  //dst->frame_poc            = src->frame_poc;
   dst->qp                   = src->qp;
   dst->slice_qp_delta       = src->slice_qp_delta;
   dst->chroma_qp_offset[0]  = src->chroma_qp_offset[0];
@@ -1783,59 +1656,6 @@ void copy_dec_picture_JV( VideoParameters *p_Vid, StorablePicture *dst, Storable
 #endif
 }
 
-
-// this is intended to make get_block_luma faster by doing this at a more appropriate level
-// i.e. per slice rather than per MB
-static void init_cur_imgy(Slice *currSlice, VideoParameters *p_Vid)
-{
-  int i,j;
-  if ((p_Vid->separate_colour_plane_flag != 0))  
-  {
-    StorablePicture *vidref = p_Vid->no_reference_picture;
-    int noref = (currSlice->framepoc < p_Vid->recovery_poc);
-    switch(currSlice->colour_plane_id) 
-    {
-    case 0:
-      for (j = 0; j < 6; j++) //for (j = 0; j < (currSlice->slice_type==B_SLICE?2:1); j++) { 
-      {  
-        for (i = 0; i < MAX_LIST_SIZE; i++) 
-        {
-          StorablePicture *curr_ref = currSlice->listX[j][i];
-          if (curr_ref) 
-          {
-            curr_ref->no_ref = noref && (curr_ref == vidref);
-            curr_ref->cur_imgY = curr_ref->imgY;
-          }
-        }
-      }
-      break;
-    }
-  }
-  else
-  {
-    StorablePicture *vidref = p_Vid->no_reference_picture;
-    int noref = (currSlice->framepoc < p_Vid->recovery_poc);
-    int total_lists = currSlice->mb_aff_frame_flag ? 6 : (currSlice->slice_type==B_SLICE ? 2 : 1);
-    //    for (j = 0; j < 6; j++) {  //for (j = 0; j < (currSlice->slice_type==B_SLICE?2:1); j++) { 
-    for (j = 0; j < total_lists; j++) 
-    {
-      // note that if we always set this to MAX_LIST_SIZE, we avoid crashes with invalid ref_idx being set
-      // since currently this is done at the slice level, it seems safe to do so.
-      // Note for some reason I get now a mismatch between version 12 and this one in cabac. I wonder why.
-      //for (i = 0; i < currSlice->listXsize[j]; i++) 
-      for (i = 0; i < MAX_LIST_SIZE; i++) 
-      {
-        StorablePicture *curr_ref = currSlice->listX[j][i];
-        if (curr_ref) 
-        {
-          curr_ref->no_ref = noref && (curr_ref == vidref);
-          curr_ref->cur_imgY = curr_ref->imgY;
-        }
-      }
-    }
-  }
-}
-
 /*!
  ************************************************************************
  * \brief
@@ -1879,7 +1699,7 @@ void decode_one_slice(Slice *currSlice)
   {
 
 #if TRACE
-    fprintf(p_Dec->p_trace,"\n*********** POC: %i (I/P) MB: %i Slice: %i Type %d **********\n", currSlice->ThisPOC, currSlice->current_mb_nr, currSlice->current_slice_nr, currSlice->slice_type);
+    fprintf(p_Dec->p_trace,"\n*********** MB: %i Slice: %i Type %d **********\n", currSlice->current_mb_nr, currSlice->current_slice_nr, currSlice->slice_type);
 #endif
 
     // Initializes the current macroblock

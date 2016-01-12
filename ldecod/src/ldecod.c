@@ -327,10 +327,10 @@ static void init(VideoParameters *p_Vid)  //!< video parameters
 
   p_Vid->recovery_point = 0;
   p_Vid->recovery_point_found = 0;
-  p_Vid->recovery_poc = 0x7fffffff; /* set to a max value */
+  //p_Vid->recovery_poc = 0x7fffffff; /* set to a max value */
 
-  p_Vid->idr_psnr_number = p_Inp->ref_offset;
-  p_Vid->psnr_number=0;
+  //p_Vid->idr_psnr_number = p_Inp->ref_offset;
+  //p_Vid->psnr_number=0;
 
   p_Vid->number = 0;
   p_Vid->type = I_SLICE;
@@ -1131,9 +1131,6 @@ int OpenDecoder(InputParameters *p_Inp)
   pDecoder = p_Dec;
   //Configure (pDecoder->p_Vid, pDecoder->p_Inp, argc, argv);
   memcpy(pDecoder->p_Inp, p_Inp, sizeof(InputParameters));
-  //pDecoder->p_Vid->conceal_mode = p_Inp->conceal_mode;
-  pDecoder->p_Vid->ref_poc_gap = p_Inp->ref_poc_gap;
-  pDecoder->p_Vid->poc_gap = p_Inp->poc_gap;
 #if TRACE
   if ((pDecoder->p_trace = fopen(TRACEFILE,"w+"))==0)             // append new statistic at the end
   {
