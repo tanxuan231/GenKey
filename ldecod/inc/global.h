@@ -821,7 +821,7 @@ typedef struct video_par
   int pocs_in_dpb[100];
 
   struct storable_picture *dec_picture;
-  struct storable_picture *dec_picture_JV[MAX_PLANE];  //!< dec_picture to be used during 4:4:4 independent mode decoding
+  //struct storable_picture *dec_picture_JV[MAX_PLANE];  //!< dec_picture to be used during 4:4:4 independent mode decoding
   struct storable_picture *no_reference_picture; //!< dummy storable picture for recovery point
 
   // Error parameters
@@ -1046,8 +1046,6 @@ extern unsigned CeilLog2   ( unsigned uiVal);
 extern unsigned CeilLog2_sf( unsigned uiVal);
 
 // For 4:4:4 independent mode
-extern void change_plane_JV      ( VideoParameters *p_Vid, int nplane, Slice *pSlice);
-extern void make_frame_picture_JV( VideoParameters *p_Vid );
 
 #if (MVC_EXTENSION_ENABLE)
 extern void nal_unit_header_mvc_extension(NALUnitHeaderMVCExt_t *NaluHeaderMVCExt, struct bit_stream_dec *bitstream);

@@ -384,11 +384,11 @@ static void init_picture(VideoParameters *p_Vid, Slice *currSlice, InputParamete
 
   if( (p_Vid->separate_colour_plane_flag != 0) )
   {
-    p_Vid->dec_picture_JV[0] = p_Vid->dec_picture;
-    p_Vid->dec_picture_JV[1] = alloc_storable_picture (p_Vid, (PictureStructure) currSlice->structure, p_Vid->width, p_Vid->height, p_Vid->width_cr, p_Vid->height_cr, 1);
-    copy_dec_picture_JV( p_Vid, p_Vid->dec_picture_JV[1], p_Vid->dec_picture_JV[0] );
-    p_Vid->dec_picture_JV[2] = alloc_storable_picture (p_Vid, (PictureStructure) currSlice->structure, p_Vid->width, p_Vid->height, p_Vid->width_cr, p_Vid->height_cr, 1);
-    copy_dec_picture_JV( p_Vid, p_Vid->dec_picture_JV[2], p_Vid->dec_picture_JV[0] );
+    //p_Vid->dec_picture_JV[0] = p_Vid->dec_picture;
+    //p_Vid->dec_picture_JV[1] = alloc_storable_picture (p_Vid, (PictureStructure) currSlice->structure, p_Vid->width, p_Vid->height, p_Vid->width_cr, p_Vid->height_cr, 1);
+    //copy_dec_picture_JV( p_Vid, p_Vid->dec_picture_JV[1], p_Vid->dec_picture_JV[0] );
+    //p_Vid->dec_picture_JV[2] = alloc_storable_picture (p_Vid, (PictureStructure) currSlice->structure, p_Vid->width, p_Vid->height, p_Vid->width_cr, p_Vid->height_cr, 1);
+    //copy_dec_picture_JV( p_Vid, p_Vid->dec_picture_JV[2], p_Vid->dec_picture_JV[0] );
   }
 }
 #endif
@@ -486,7 +486,7 @@ static void init_picture_decoding(VideoParameters *p_Vid)
   i = 0;
 #endif
 
-  init_Deblock(p_Vid, pSlice->mb_aff_frame_flag);	//需要去掉
+  //init_Deblock(p_Vid, pSlice->mb_aff_frame_flag);	//需要去掉
 #if 0
   //init mb_data;
   for(j=0; j<p_Vid->iSliceNumOfCurrPic; j++)
@@ -1587,73 +1587,6 @@ void field_postprocessing(VideoParameters *p_Vid)
   p_Vid->number /= 2;
 }
 
-
-
-/*!
- ************************************************************************
- * \brief
- *    copy StorablePicture *src -> StorablePicture *dst
- *    for 4:4:4 Independent mode
- ************************************************************************
- */
-void copy_dec_picture_JV( VideoParameters *p_Vid, StorablePicture *dst, StorablePicture *src )
-{
-  //dst->top_poc              = src->top_poc;
-  //dst->bottom_poc           = src->bottom_poc;
-  //dst->frame_poc            = src->frame_poc;
-  dst->qp                   = src->qp;
-  dst->slice_qp_delta       = src->slice_qp_delta;
-  dst->chroma_qp_offset[0]  = src->chroma_qp_offset[0];
-  dst->chroma_qp_offset[1]  = src->chroma_qp_offset[1];
-
-  //dst->poc                  = src->poc;
-
-  dst->slice_type           = src->slice_type;
-  dst->used_for_reference   = src->used_for_reference;
-  dst->idr_flag             = src->idr_flag;
-  dst->no_output_of_prior_pics_flag = src->no_output_of_prior_pics_flag;
-  dst->long_term_reference_flag = src->long_term_reference_flag;
-  dst->adaptive_ref_pic_buffering_flag = src->adaptive_ref_pic_buffering_flag;
-
-  dst->dec_ref_pic_marking_buffer = src->dec_ref_pic_marking_buffer;
-
-  dst->mb_aff_frame_flag    = src->mb_aff_frame_flag;
-  dst->PicWidthInMbs        = src->PicWidthInMbs;
-  dst->pic_num              = src->pic_num;
-  dst->frame_num            = src->frame_num;
-  dst->recovery_frame       = src->recovery_frame;
-  dst->coded_frame          = src->coded_frame;
-
-  dst->chroma_format_idc    = src->chroma_format_idc;
-
-  dst->frame_mbs_only_flag  = src->frame_mbs_only_flag;
-  dst->frame_cropping_flag  = src->frame_cropping_flag;
-
-  dst->frame_crop_left_offset   = src->frame_crop_left_offset;
-  dst->frame_crop_right_offset  = src->frame_crop_right_offset;
-  dst->frame_crop_top_offset    = src->frame_crop_top_offset;
-  dst->frame_crop_bottom_offset = src->frame_crop_bottom_offset;
-
-#if (ENABLE_OUTPUT_TONEMAPPING)
-  // store the necessary tone mapping sei into StorablePicture structure
-  dst->seiHasTone_mapping = src->seiHasTone_mapping;
-
-  dst->seiHasTone_mapping    = src->seiHasTone_mapping;
-  dst->tone_mapping_model_id = src->tone_mapping_model_id;
-  dst->tonemapped_bit_depth  = src->tonemapped_bit_depth;
-  if( src->tone_mapping_lut )
-  {
-    int coded_data_bit_max = (1 << p_Vid->seiToneMapping->coded_data_bit_depth);
-    dst->tone_mapping_lut      = malloc(sizeof(int) * coded_data_bit_max);
-    if (NULL == dst->tone_mapping_lut)
-    {
-      no_mem_exit("copy_dec_picture_JV: tone_mapping_lut");
-    }
-    memcpy(dst->tone_mapping_lut, src->tone_mapping_lut, sizeof(imgpel) * coded_data_bit_max);
-  }
-#endif
-}
-
 /*!
  ************************************************************************
  * \brief
@@ -1669,7 +1602,7 @@ void decode_one_slice(Slice *currSlice)
 
   if( (p_Vid->separate_colour_plane_flag != 0) )
   {
-    change_plane_JV( p_Vid, currSlice->colour_plane_id, currSlice );
+    //change_plane_JV( p_Vid, currSlice->colour_plane_id, currSlice );
   }
   else
   {
