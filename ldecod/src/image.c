@@ -1279,10 +1279,10 @@ process_nalu:
 void exit_picture(VideoParameters *p_Vid, StorablePicture **dec_picture)
 {
   InputParameters *p_Inp = p_Vid->p_Inp;
-  SNRParameters   *snr   = p_Vid->snr;
+  //SNRParameters   *snr   = p_Vid->snr;
   char yuv_types[4][6]= {"4:0:0","4:2:0","4:2:2","4:4:4"};
 
-  int structure, frame_poc, slice_type, refpic, qp, pic_num, chroma_format_idc, is_idr;
+  int structure, slice_type, refpic, qp, pic_num, chroma_format_idc, is_idr;
 
   int64 tmp_time;                   // time used by decoding the last frame
   char   yuvFormat[10];
@@ -1403,7 +1403,7 @@ void exit_picture(VideoParameters *p_Vid, StorablePicture **dec_picture)
 #if 1
     if (p_Inp->silent == FALSE)
     {
-      SNRParameters   *snr = p_Vid->snr;
+      //SNRParameters   *snr = p_Vid->snr;
       //if (p_Vid->p_ref != -1)
         //fprintf(stdout,"%05d(%s%5d %5d %5d %8.4f %8.4f %8.4f  %s %7d\n",
         //p_Vid->frame_no, p_Vid->cslice_type, frame_poc, pic_num, qp, snr->snr[0], snr->snr[1], snr->snr[2], yuvFormat, (int) tmp_time);
@@ -1412,8 +1412,8 @@ void exit_picture(VideoParameters *p_Vid, StorablePicture **dec_picture)
         fprintf(stdout,"%05d(%s%5d %5d                             %s %7d\n",
         p_Vid->frame_no, p_Vid->cslice_type, pic_num, qp, yuvFormat, (int)tmp_time);
     }
-    else
-      fprintf(stdout,"Completed Decoding frame %05d.\r",snr->frame_ctr);
+    //else
+      //fprintf(stdout,"Completed Decoding frame %05d.\r",snr->frame_ctr);
 #endif
 
     fflush(stdout);
@@ -1428,7 +1428,7 @@ void exit_picture(VideoParameters *p_Vid, StorablePicture **dec_picture)
     }
     else
       ++(p_Vid->Bframe_ctr);    // B pictures
-    ++(snr->frame_ctr);
+    //++(snr->frame_ctr);
 
 #if (MVC_EXTENSION_ENABLE)
     if ((p_Vid->ppSliceList[0])->view_id != 0)

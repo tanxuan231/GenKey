@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 	gettimeofday( &start, NULL );
 	
   int iRet;
-  DecodedPicList *pDecPicList;
+  //DecodedPicList *pDecPicList;
   int iFramesDecoded=0;
   InputParameters InputParams;
 
@@ -94,10 +94,10 @@ int main(int argc, char **argv)
 	
   do
   {
-    iRet = DecodeOneFrame(&pDecPicList);	
+    iRet = DecodeOneFrame();	
   }while((iRet == DEC_SUCCEED) && ((p_Dec->p_Inp->iDecFrmNum==0) || (iFramesDecoded<p_Dec->p_Inp->iDecFrmNum)));
 	
-  iRet = FinitDecoder(&pDecPicList);
+  iRet = FinitDecoder();
   iRet = CloseDecoder();	//°üº¬reportÊä³ö
 
   

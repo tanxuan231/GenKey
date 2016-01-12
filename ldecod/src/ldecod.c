@@ -123,8 +123,8 @@ static void alloc_video_params( VideoParameters **p_Vid)
   if (((*p_Vid)->old_slice = (OldSliceParams *) calloc(1, sizeof(OldSliceParams)))==NULL) 
     no_mem_exit("alloc_video_params: p_Vid->old_slice");
 
-  if (((*p_Vid)->snr =  (SNRParameters *)calloc(1, sizeof(SNRParameters)))==NULL) 
-    no_mem_exit("alloc_video_params: p_Vid->snr");  
+  //if (((*p_Vid)->snr =  (SNRParameters *)calloc(1, sizeof(SNRParameters)))==NULL) 
+    //no_mem_exit("alloc_video_params: p_Vid->snr");  
 
   // Allocate new dpb buffer
   for (i = 0; i < MAX_NUM_DPB_LAYERS; i++)
@@ -155,7 +155,7 @@ static void alloc_video_params( VideoParameters **p_Vid)
   //(*p_Vid)->currentSlice = NULL;
   (*p_Vid)->pNextSlice = NULL;
   (*p_Vid)->nalu = AllocNALU(MAX_CODED_FRAME_SIZE);
-  (*p_Vid)->pDecOuputPic = (DecodedPicList *)calloc(1, sizeof(DecodedPicList));
+  //(*p_Vid)->pDecOuputPic = (DecodedPicList *)calloc(1, sizeof(DecodedPicList));
   (*p_Vid)->pNextPPS = AllocPPS();
   (*p_Vid)->first_sps = TRUE;
 }
@@ -244,10 +244,10 @@ static void free_img( VideoParameters *p_Vid)
         p_Vid->p_LayerPar[i] = NULL;
       }
     }    
-    if (p_Vid->snr != NULL)
+    //if (p_Vid->snr != NULL)
     {
-      free (p_Vid->snr);
-      p_Vid->snr = NULL;
+      //free (p_Vid->snr);
+      //p_Vid->snr = NULL;
     }
     if (p_Vid->old_slice != NULL)
     {
@@ -274,7 +274,7 @@ static void free_img( VideoParameters *p_Vid)
       p_Vid->nalu=NULL;
     }
     //free memory;
-    FreeDecPicList(p_Vid->pDecOuputPic);
+    //FreeDecPicList(p_Vid->pDecOuputPic);
     if(p_Vid->pNextPPS)
     {
       FreePPS(p_Vid->pNextPPS);
@@ -289,23 +289,6 @@ static void free_img( VideoParameters *p_Vid)
 
     free (p_Vid);
     p_Vid = NULL;
-  }
-}
-
-void FreeDecPicList(DecodedPicList *pDecPicList)
-{
-  while(pDecPicList)
-  {
-    DecodedPicList *pPicNext = pDecPicList->pNext;
-    if(pDecPicList->pY)
-    {
-      free(pDecPicList->pY);
-      pDecPicList->pY = NULL;
-      pDecPicList->pU = NULL;
-      pDecPicList->pV = NULL;
-    }
-    free(pDecPicList);
-    pDecPicList = pPicNext;
   }
 }
 
@@ -338,7 +321,7 @@ static void init(VideoParameters *p_Vid)  //!< video parameters
 
   p_Vid->g_nFrame = 0;
   // B pictures
-  p_Vid->Bframe_ctr = p_Vid->snr->frame_ctr = 0;
+  p_Vid->Bframe_ctr /*= p_Vid->snr->frame_ctr*/ = 0;
 
   // time for total decoding session
   p_Vid->tot_time = 0;
@@ -1058,6 +1041,7 @@ void report_stats_on_error(void)
   exit (-1);
 }
 
+#if 0
 void ClearDecPicList(VideoParameters *p_Vid)
 {
   DecodedPicList *pPic = p_Vid->pDecOuputPic, *pPrior = NULL;
@@ -1080,35 +1064,7 @@ void ClearDecPicList(VideoParameters *p_Vid)
     pPrior->pNext = NULL;
   }
 }
-
-DecodedPicList *get_one_avail_dec_pic_from_list(DecodedPicList *pDecPicList, int b3D, int view_id)
-{
-  DecodedPicList *pPic = pDecPicList, *pPrior = NULL;
-  if(b3D)
-  {
-    while(pPic && (pPic->bValid &(1<<view_id)))
-    {
-      pPrior = pPic;
-      pPic = pPic->pNext;
-    }
-  }
-  else
-  {
-    while(pPic && (pPic->bValid))
-    {
-      pPrior = pPic;
-      pPic = pPic->pNext;
-    }
-  }
-
-  if(!pPic)
-  {
-    pPic = (DecodedPicList *)calloc(1, sizeof(*pPic));
-    pPrior->pNext = pPic;
-  }
-
-  return pPic;
-}
+#endif
 /************************************
 Interface: OpenDecoder
 Return: 
@@ -1182,7 +1138,8 @@ Return:
        1: Finished decoding;
        others: Error Code;
 ************************************/
-int DecodeOneFrame(DecodedPicList **ppDecPicList)
+//int DecodeOneFrame(DecodedPicList **ppDecPicList)
+int DecodeOneFrame()
 {
   int iRet;
   DecoderParams *pDecoder = p_Dec;
@@ -1201,16 +1158,17 @@ int DecodeOneFrame(DecodedPicList **ppDecPicList)
     iRet |= DEC_ERRMASK;
   }
 
-  *ppDecPicList = pDecoder->p_Vid->pDecOuputPic;
+  //*ppDecPicList = pDecoder->p_Vid->pDecOuputPic;
   return iRet;
 }
 
-int FinitDecoder(DecodedPicList **ppDecPicList)
+//int FinitDecoder(DecodedPicList **ppDecPicList)
+int FinitDecoder()
 {
   DecoderParams *pDecoder = p_Dec;
   if(!pDecoder)
     return DEC_GEN_NOERR;
-  ClearDecPicList(pDecoder->p_Vid);
+  //ClearDecPicList(pDecoder->p_Vid);
 
   if (pDecoder->p_Inp->FileFormat == PAR_OF_ANNEXB)
   {
@@ -1218,7 +1176,7 @@ int FinitDecoder(DecodedPicList **ppDecPicList)
   }
   pDecoder->p_Vid->newframe = 0;
   pDecoder->p_Vid->previous_frame_num = 0;
-  *ppDecPicList = pDecoder->p_Vid->pDecOuputPic;
+  //*ppDecPicList = pDecoder->p_Vid->pDecOuputPic;
   return DEC_GEN_NOERR;
 }
 
