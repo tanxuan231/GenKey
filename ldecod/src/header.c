@@ -129,7 +129,7 @@ int RestOfSliceHeader(Slice *currSlice)
   {
     p_Vid->pre_frame_num = currSlice->frame_num;
     // picture error concealment
-    p_Vid->last_ref_pic_poc = 0;
+    //p_Vid->last_ref_pic_poc = 0;
     assert(currSlice->frame_num == 0);
   }
 
@@ -158,7 +158,6 @@ int RestOfSliceHeader(Slice *currSlice)
   currSlice->structure = (PictureStructure) p_Vid->structure;
 
   currSlice->mb_aff_frame_flag = (active_sps->mb_adaptive_frame_field_flag && (currSlice->field_pic_flag==0));
-  //currSlice->mb_aff_frame_flag = p_Vid->mb_aff_frame_flag;
 
   if (p_Vid->structure == FRAME       ) 
     assert (currSlice->field_pic_flag == 0);
@@ -182,9 +181,13 @@ int RestOfSliceHeader(Slice *currSlice)
   {
     currSlice->pic_order_cnt_lsb = read_u_v(active_sps->log2_max_pic_order_cnt_lsb_minus4 + 4, "SH: pic_order_cnt_lsb", currStream, p_Dec);
     if( p_Vid->active_pps->bottom_field_pic_order_in_frame_present_flag  ==  1 &&  !currSlice->field_pic_flag )
+    {
       currSlice->delta_pic_order_cnt_bottom = read_se_v("SH: delta_pic_order_cnt_bottom", currStream, p_Dec);
+    }
     else
+    {
       currSlice->delta_pic_order_cnt_bottom = 0;
+    }
   }
   if( active_sps->pic_order_cnt_type == 1 )
   {
@@ -192,9 +195,13 @@ int RestOfSliceHeader(Slice *currSlice)
     {
       currSlice->delta_pic_order_cnt[ 0 ] = read_se_v("SH: delta_pic_order_cnt[0]", currStream, p_Dec);
       if( p_Vid->active_pps->bottom_field_pic_order_in_frame_present_flag  ==  1  &&  !currSlice->field_pic_flag )
+      {
         currSlice->delta_pic_order_cnt[ 1 ] = read_se_v("SH: delta_pic_order_cnt[1]", currStream, p_Dec);
+      }
       else
+      {
         currSlice->delta_pic_order_cnt[ 1 ] = 0;  // set to zero if not in stream
+      }
     }
     else
     {
@@ -235,10 +242,9 @@ int RestOfSliceHeader(Slice *currSlice)
     currSlice->num_ref_idx_active[LIST_1] = 0;
   }
 
-//不能删除,报错
 #if (MVC_EXTENSION_ENABLE)
   if (currSlice->svc_extension_flag == 0 || currSlice->svc_extension_flag == 1)
-    ref_pic_list_mvc_modification(currSlice);
+    ref_pic_list_mvc_modification(currSlice);	//read syntax
   else
     ref_pic_list_reordering(currSlice);
 #else
@@ -361,6 +367,7 @@ int RestOfSliceHeader(Slice *currSlice)
  *    read the reference picture reordering information
  ************************************************************************
  */
+//不能删除,报错
 static void ref_pic_list_reordering(Slice *currSlice)
 {
   //VideoParameters *p_Vid = currSlice->p_Vid;
@@ -369,66 +376,56 @@ static void ref_pic_list_reordering(Slice *currSlice)
   Bitstream *currStream = partition->bitstream;
   int i, val;
 
-  alloc_ref_pic_list_reordering_buffer(currSlice);
-
   if (currSlice->slice_type != I_SLICE && currSlice->slice_type != SI_SLICE)
   {
-    val = currSlice->ref_pic_list_reordering_flag[LIST_0] = read_u_1 ("SH: ref_pic_list_reordering_flag_l0", currStream, p_Dec);
+    val = read_u_1 ("SH: ref_pic_list_reordering_flag_l0", currStream, p_Dec);
 
     if (val)
     {
       i=0;
       do
       {
-        val = currSlice->modification_of_pic_nums_idc[LIST_0][i] = read_ue_v("SH: modification_of_pic_nums_idc_l0", currStream, p_Dec);
+        val = read_ue_v("SH: modification_of_pic_nums_idc_l0", currStream, p_Dec);
         if (val==0 || val==1)
         {
-          currSlice->abs_diff_pic_num_minus1[LIST_0][i] = read_ue_v("SH: abs_diff_pic_num_minus1_l0", currStream, p_Dec);
+		  read_ue_v("SH: abs_diff_pic_num_minus1_l0", currStream, p_Dec);
         }
         else
         {
           if (val==2)
           {
-            currSlice->long_term_pic_idx[LIST_0][i] = read_ue_v("SH: long_term_pic_idx_l0", currStream, p_Dec);
+			read_ue_v("SH: long_term_pic_idx_l0", currStream, p_Dec);
           }
         }
         i++;
-        // assert (i>currSlice->num_ref_idx_active[LIST_0]);
       } while (val != 3);
     }
   }
 
   if (currSlice->slice_type == B_SLICE)
   {
-    val = currSlice->ref_pic_list_reordering_flag[LIST_1] = read_u_1 ("SH: ref_pic_list_reordering_flag_l1", currStream, p_Dec);
+    val = read_u_1 ("SH: ref_pic_list_reordering_flag_l1", currStream, p_Dec);
 
     if (val)
     {
       i=0;
       do
       {
-        val = currSlice->modification_of_pic_nums_idc[LIST_1][i] = read_ue_v("SH: modification_of_pic_nums_idc_l1", currStream, p_Dec);
+        val = read_ue_v("SH: modification_of_pic_nums_idc_l1", currStream, p_Dec);
         if (val==0 || val==1)
         {
-          currSlice->abs_diff_pic_num_minus1[LIST_1][i] = read_ue_v("SH: abs_diff_pic_num_minus1_l1", currStream, p_Dec);
+		  read_ue_v("SH: abs_diff_pic_num_minus1_l1", currStream, p_Dec);
         }
         else
         {
           if (val==2)
           {
-            currSlice->long_term_pic_idx[LIST_1][i] = read_ue_v("SH: long_term_pic_idx_l1", currStream, p_Dec);
+			read_ue_v("SH: long_term_pic_idx_l1", currStream, p_Dec);
           }
         }
         i++;
-        // assert (i>currSlice->num_ref_idx_active[LIST_1]);
       } while (val != 3);
     }
-  }
-
-  // set reference index of redundant slices.
-  if(currSlice->redundant_pic_cnt && (currSlice->slice_type != I_SLICE) )
-  {
-    currSlice->redundant_slice_ref_idx = currSlice->abs_diff_pic_num_minus1[LIST_0][0] + 1;
   }
 }
 
@@ -447,74 +444,64 @@ static void ref_pic_list_mvc_modification(Slice *currSlice)
   Bitstream *currStream = partition->bitstream;
   int i, val;
 
-  alloc_ref_pic_list_reordering_buffer(currSlice);
-
   if ((currSlice->slice_type % 5) != I_SLICE && (currSlice->slice_type % 5) != SI_SLICE)
   {
-    val = currSlice->ref_pic_list_reordering_flag[LIST_0] = read_u_1 ("SH: ref_pic_list_modification_flag_l0", currStream, p_Dec);
+    val = read_u_1 ("SH: ref_pic_list_modification_flag_l0", currStream, p_Dec);
 
     if (val)
     {
       i=0;
       do
       {
-        val = currSlice->modification_of_pic_nums_idc[LIST_0][i] = read_ue_v("SH: modification_of_pic_nums_idc_l0", currStream, p_Dec);
+        val = read_ue_v("SH: modification_of_pic_nums_idc_l0", currStream, p_Dec);
         if (val==0 || val==1)
         {
-          currSlice->abs_diff_pic_num_minus1[LIST_0][i] = read_ue_v("SH: abs_diff_pic_num_minus1_l0", currStream, p_Dec);
+		  read_ue_v("SH: abs_diff_pic_num_minus1_l0", currStream, p_Dec);
         }
         else
         {
           if (val==2)
           {
-            currSlice->long_term_pic_idx[LIST_0][i] = read_ue_v("SH: long_term_pic_idx_l0", currStream, p_Dec);
+			read_ue_v("SH: long_term_pic_idx_l0", currStream, p_Dec);
           }
           else if (val==4 || val==5)
           {
-            currSlice->abs_diff_view_idx_minus1[LIST_0][i] = read_ue_v("SH: abs_diff_view_idx_minus1_l0", currStream, p_Dec);
+			read_ue_v("SH: abs_diff_view_idx_minus1_l0", currStream, p_Dec);
           }
         }
         i++;
-        // assert (i>img->num_ref_idx_l0_active);
       } while (val != 3);
     }
   }
 
   if ((currSlice->slice_type % 5) == B_SLICE)
   {
-    val = currSlice->ref_pic_list_reordering_flag[LIST_1] = read_u_1 ("SH: ref_pic_list_reordering_flag_l1", currStream, p_Dec);
+    val = read_u_1 ("SH: ref_pic_list_reordering_flag_l1", currStream, p_Dec);
 
     if (val)
     {
       i=0;
       do
       {
-        val = currSlice->modification_of_pic_nums_idc[LIST_1][i] = read_ue_v("SH: modification_of_pic_nums_idc_l1", currStream, p_Dec);
+        val = read_ue_v("SH: modification_of_pic_nums_idc_l1", currStream, p_Dec);
         if (val==0 || val==1)
         {
-          currSlice->abs_diff_pic_num_minus1[LIST_1][i] = read_ue_v("SH: abs_diff_pic_num_minus1_l1", currStream, p_Dec);
+		  read_ue_v("SH: abs_diff_pic_num_minus1_l1", currStream, p_Dec);
         }
         else
         {
           if (val==2)
           {
-            currSlice->long_term_pic_idx[LIST_1][i] = read_ue_v("SH: long_term_pic_idx_l1", currStream, p_Dec);
+			read_ue_v("SH: long_term_pic_idx_l1", currStream, p_Dec);
           }
           else if (val==4 || val==5)
           {
-            currSlice->abs_diff_view_idx_minus1[LIST_1][i] = read_ue_v("SH: abs_diff_view_idx_minus1_l1", currStream, p_Dec);
+			read_ue_v("SH: abs_diff_view_idx_minus1_l1", currStream, p_Dec);
           }
         }
         i++;
-        // assert (i>img->num_ref_idx_l1_active);
       } while (val != 3);
     }
-  }
-
-  // set reference index of redundant slices.
-  if(currSlice->redundant_pic_cnt && (currSlice->slice_type != I_SLICE) )
-  {
-    currSlice->redundant_slice_ref_idx = currSlice->abs_diff_pic_num_minus1[LIST_0][0] + 1;
   }
 }
 #endif

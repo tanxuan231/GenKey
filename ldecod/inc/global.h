@@ -444,7 +444,7 @@ typedef struct slice
   int redundant_pic_cnt;
   int sp_switch;                              //!< 1 for switching sp, 0 for normal sp  
   int slice_group_change_cycle;
-  int redundant_slice_ref_idx;     //!< reference index of redundant slice
+  //int redundant_slice_ref_idx;     //!< reference index of redundant slice
   int no_output_of_prior_pics_flag;
   int long_term_reference_flag;
   int adaptive_ref_pic_buffering_flag;
@@ -460,13 +460,13 @@ typedef struct slice
 
   int mvscale[6][MAX_REFERENCE_PICTURES];
 
-  int                 ref_pic_list_reordering_flag[2];
-  int                 *modification_of_pic_nums_idc[2];
-  int                 *abs_diff_pic_num_minus1[2];
-  int                 *long_term_pic_idx[2];
+  //int                 ref_pic_list_reordering_flag[2];
+  //int                 *modification_of_pic_nums_idc[2];
+  //int                 *abs_diff_pic_num_minus1[2];
+  //int                 *long_term_pic_idx[2];
 
 #if (MVC_EXTENSION_ENABLE)
-  int                 *abs_diff_view_idx_minus1[2];
+  //int                 *abs_diff_view_idx_minus1[2];
 
   int                 view_id;
   int                 inter_view_flag;
@@ -675,7 +675,7 @@ typedef struct video_par
   seq_parameter_set_rbsp_t *active_sps;
   seq_parameter_set_rbsp_t SeqParSet[MAXSPS];  //SPS集合,数组下标值为pps->seq_parameter_set_id
   pic_parameter_set_rbsp_t PicParSet[MAXPPS];	//PPS集合,数组下标值为当前条带头中的pic_parameter_set_id值
-  struct decoded_picture_buffer *p_Dpb_layer[MAX_NUM_DPB_LAYERS];
+  //struct decoded_picture_buffer *p_Dpb_layer[MAX_NUM_DPB_LAYERS];
   CodingParameters *p_EncodePar[MAX_NUM_DPB_LAYERS];
   LayerParameters *p_LayerPar[MAX_NUM_DPB_LAYERS];
 
@@ -763,7 +763,7 @@ typedef struct video_par
   TIME_T end_time;
 
   // picture error concealment
-  int last_ref_pic_poc;
+  //int last_ref_pic_poc;
   //int ref_poc_gap;
   //int poc_gap;
   //int conceal_mode;

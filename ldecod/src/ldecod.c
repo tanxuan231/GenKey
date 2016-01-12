@@ -102,11 +102,11 @@ void error(char *text, int code)
   exit(code);
 }
 
-static void reset_dpb( VideoParameters *p_Vid, DecodedPictureBuffer *p_Dpb )
-{
-  p_Dpb->p_Vid = p_Vid;
-  p_Dpb->init_done = 0;
-}
+//static void reset_dpb( VideoParameters *p_Vid, DecodedPictureBuffer *p_Dpb )
+//{
+  //p_Dpb->p_Vid = p_Vid;
+  //p_Dpb->init_done = 0;
+//}
 /*!
  ***********************************************************************
  * \brief
@@ -130,10 +130,10 @@ static void alloc_video_params( VideoParameters **p_Vid)
   // Allocate new dpb buffer
   for (i = 0; i < MAX_NUM_DPB_LAYERS; i++)
   {
-    if (((*p_Vid)->p_Dpb_layer[i] =  (DecodedPictureBuffer*)calloc(1, sizeof(DecodedPictureBuffer)))==NULL) 
-      no_mem_exit("alloc_video_params: p_Vid->p_Dpb_layer[i]");
-    (*p_Vid)->p_Dpb_layer[i]->layer_id = i;
-    reset_dpb(*p_Vid, (*p_Vid)->p_Dpb_layer[i]);
+    //if (((*p_Vid)->p_Dpb_layer[i] =  (DecodedPictureBuffer*)calloc(1, sizeof(DecodedPictureBuffer)))==NULL) 
+      //no_mem_exit("alloc_video_params: p_Vid->p_Dpb_layer[i]");
+    //(*p_Vid)->p_Dpb_layer[i]->layer_id = i;
+    //reset_dpb(*p_Vid, (*p_Vid)->p_Dpb_layer[i]);
     if(((*p_Vid)->p_EncodePar[i] = (CodingParameters *)calloc(1, sizeof(CodingParameters))) == NULL)
       no_mem_exit("alloc_video_params:p_Vid->p_EncodePar[i]");
     ((*p_Vid)->p_EncodePar[i])->layer_id = i;
@@ -229,11 +229,11 @@ static void free_img( VideoParameters *p_Vid)
     // Free new dpb layers
     for (i = 0; i < MAX_NUM_DPB_LAYERS; i++)
     {
-      if (p_Vid->p_Dpb_layer[i] != NULL)
-      {
-        free (p_Vid->p_Dpb_layer[i]);
-        p_Vid->p_Dpb_layer[i] = NULL;
-      }
+      //if (p_Vid->p_Dpb_layer[i] != NULL)
+      //{
+        //free (p_Vid->p_Dpb_layer[i]);
+        //p_Vid->p_Dpb_layer[i] = NULL;
+      //}
       if(p_Vid->p_EncodePar[i])
       {
         free(p_Vid->p_EncodePar[i]);
@@ -793,8 +793,8 @@ static void free_slice(Slice *currSlice)
 {
   int i;
 
-  if (currSlice->slice_type != I_SLICE && currSlice->slice_type != SI_SLICE)
-  free_ref_pic_list_reordering_buffer(currSlice);
+  //if (currSlice->slice_type != I_SLICE && currSlice->slice_type != SI_SLICE)
+  //free_ref_pic_list_reordering_buffer(currSlice);
   //free_pred_mem(currSlice);
   free_mem3Dint(currSlice->cof    );
   free_mem3Dint(currSlice->mb_rres);

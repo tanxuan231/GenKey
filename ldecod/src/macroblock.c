@@ -24,7 +24,6 @@
 #include "block.h"
 #include "global.h"
 #include "mbuffer.h"
-#include "mbuffer_mvc.h"
 #include "elements.h"
 #include "macroblock.h"
 #include "fmo.h"

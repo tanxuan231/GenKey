@@ -138,13 +138,5 @@ struct concealment_node {
     struct concealment_node *next;
 };
 
-extern struct concealment_node * init_node(StorablePicture* , int );
-extern void print_node( struct concealment_node * );
-extern void print_list( struct concealment_node * );
-extern void init_lists_for_non_reference_loss(DecodedPictureBuffer *p_Dpb, int , PictureStructure );
-
-extern int comp(const void *, const void *);
-
-
 #endif
 

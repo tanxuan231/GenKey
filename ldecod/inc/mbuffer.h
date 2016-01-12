@@ -45,7 +45,7 @@ typedef struct storable_picture
 {
   PictureStructure structure;
 
-  int         poc;
+  //int         poc;
   //int         top_poc;
   //int         bottom_poc;
   //int         frame_poc;
@@ -151,7 +151,7 @@ typedef struct frame_store
   int       frame_num_wrap;
   int       long_term_frame_idx;
   int       is_output;
-  int       poc;
+  //int       poc;
 
   // picture error concealment
   int concealment_reference;
@@ -189,7 +189,7 @@ typedef struct decoded_picture_buffer
   int           max_long_term_pic_idx;  
 
 
-  int           init_done;
+  //int           init_done;
   int           num_ref_frames;
 
   FrameStore   *last_picture;

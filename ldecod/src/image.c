@@ -48,7 +48,6 @@
 #include "quant.h"
 
 #include "erc_api.h"
-#include "mbuffer_common.h"
 #include "fast_memory.h"
 
 extern int testEndian(void);
@@ -105,7 +104,7 @@ static void init_mvc_picture(Slice *currSlice)
 {
   int i;
   VideoParameters *p_Vid = currSlice->p_Vid;
-  DecodedPictureBuffer *p_Dpb = p_Vid->p_Dpb_layer[0];
+  //DecodedPictureBuffer *p_Dpb = p_Vid->p_Dpb_layer[0];
 
   StorablePicture *p_pic = NULL;
 
@@ -696,7 +695,7 @@ int decode_one_frame(DecoderParams *pDecoder)
     //p_Vid->currentSlice = currSlice;
     currSlice->p_Vid = p_Vid;
     currSlice->p_Inp = p_Inp;
-    currSlice->p_Dpb = p_Vid->p_Dpb_layer[0]; //set default value;
+    //currSlice->p_Dpb = p_Vid->p_Dpb_layer[0]; //set default value;
     currSlice->next_header = -8888;
     currSlice->num_dec_mb = 0;
     currSlice->coeff_ctr = -1;
@@ -1001,7 +1000,7 @@ process_nalu:
 #if (MVC_EXTENSION_ENABLE)
       if(currSlice->view_id >=0)
       {
-        currSlice->p_Dpb = p_Vid->p_Dpb_layer[currSlice->view_id];	//½âÂëÍ¼Ïñ»º´æ
+        //currSlice->p_Dpb = p_Vid->p_Dpb_layer[currSlice->view_id];	//½âÂëÍ¼Ïñ»º´æ
       }
 #endif
 
@@ -1065,7 +1064,7 @@ process_nalu:
       currSlice->max_part_nr = 3;
       currSlice->ei_flag     = 0;
 #if MVC_EXTENSION_ENABLE
-      currSlice->p_Dpb = p_Vid->p_Dpb_layer[0];
+      //currSlice->p_Dpb = p_Vid->p_Dpb_layer[0];
 #endif
       currStream             = currSlice->partArr[0].bitstream;
       currStream->ei_flag    = 0;
@@ -1088,7 +1087,7 @@ process_nalu:
 
       BitsUsedByHeader += RestOfSliceHeader (currSlice);
 #if MVC_EXTENSION_ENABLE
-      currSlice->p_Dpb = p_Vid->p_Dpb_layer[currSlice->view_id];
+      //currSlice->p_Dpb = p_Vid->p_Dpb_layer[currSlice->view_id];
 #endif
 
       assign_quant_params (currSlice);        
@@ -1608,7 +1607,7 @@ void copy_dec_picture_JV( VideoParameters *p_Vid, StorablePicture *dst, Storable
   dst->chroma_qp_offset[0]  = src->chroma_qp_offset[0];
   dst->chroma_qp_offset[1]  = src->chroma_qp_offset[1];
 
-  dst->poc                  = src->poc;
+  //dst->poc                  = src->poc;
 
   dst->slice_type           = src->slice_type;
   dst->used_for_reference   = src->used_for_reference;
